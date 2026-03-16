@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 36 33% 97%;
+    --foreground: 240 10% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 15%;
+
+    --primary: 18 100% 72%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 40% 88%;
+    --secondary-foreground: 270 30% 30%;
+
+    --muted: 36 20% 93%;
+    --muted-foreground: 240 5% 50%;
+
+    --accent: 155 40% 85%;
+    --accent-foreground: 155 30% 25%;
+
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 36 15% 90%;
+    --input: 36 15% 90%;
+    --ring: 18 100% 72%;
+
+    --radius: 2rem;
+
+    /* GT Flow custom tokens */
+    --peach: 18 100% 72%;
+    --peach-dark: 350 80% 68%;
+    --lilac: 270 40% 88%;
+    --lilac-dark: 270 30% 70%;
+    --mint: 155 40% 85%;
+    --mint-dark: 155 35% 60%;
+    --warm-white: 36 33% 97%;
+    --shadow-soft: 0 20px 50px rgba(0,0,0,0.05);
+    --shadow-card: 0 8px 30px rgba(0,0,0,0.04);
+    --shadow-hover: 0 25px 60px rgba(0,0,0,0.08);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html, body, #root {
+    @apply w-full min-h-screen bg-background text-foreground font-outfit antialiased;
+  }
+}
+
+@layer components {
+  .bento-card {
+    @apply bg-card rounded-squircle shadow-card transition-all duration-300 hover:shadow-hover hover:-translate-y-1;
+  }
+  .gradient-peach {
+    background: linear-gradient(135deg, hsl(var(--peach)), hsl(var(--peach-dark)));
+  }
+  .gradient-lilac {
+    background: linear-gradient(135deg, hsl(var(--lilac)), hsl(var(--lilac-dark)));
+  }
+  .gradient-mint {
+    background: linear-gradient(135deg, hsl(var(--mint)), hsl(var(--mint-dark)));
+  }
+  .glass-pill {
+    @apply backdrop-blur-md bg-card/70 rounded-full shadow-card;
+  }
+  .frosted-overlay {
+    @apply backdrop-blur-xl bg-background/60;
+  }
+  .focus-glow {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2 focus:ring-offset-background;
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

@@ -234,14 +234,29 @@ const FabricaConteudo = () => {
         return undefined;
       };
 
+      const extractText = (val: any): string => {
+        if (typeof val === "string") return val;
+        if (val && typeof val === "object") {
+          return val.texto || val.text || val.content || val.caption || val.body || "";
+        }
+        return "";
+      };
+
+      const extractImage = (val: any, text: string): string | undefined => {
+        if (val && typeof val === "object") {
+          const img = val.imagem || val.image || val.imageUrl || val.image_url;
+          if (img) return img;
+        }
+        return resolveImageUrl(val, text);
+      };
+
       const newContents: GeneratedContent[] = [];
 
       if (typeof data === "object" && data !== null && !Array.isArray(data)) {
         Object.keys(data).forEach((channelKey, i) => {
           const value = data[channelKey];
-          const item = typeof value === "string" ? { text: value } : value;
-          const rawText = item?.texto || item?.text || item?.content || item?.caption || JSON.stringify(item);
-          const imageUrl = item?.imagem || item?.image || item?.imageUrl || item?.image_url || resolveImageUrl(item, rawText);
+          const rawText = extractText(value);
+          const imageUrl = extractImage(value, rawText);
           const cleanText = removeImagePromptTag(rawText);
           const matchedChannel = channels.find(
             c => c.label.toLowerCase() === channelKey.toLowerCase() || c.id.toLowerCase() === channelKey.toLowerCase()
@@ -261,15 +276,14 @@ const FabricaConteudo = () => {
       } else {
         const items = Array.isArray(data) ? data : [data];
         items.forEach((item: any, i: number) => {
-          const raw = typeof item === "string" ? { text: item } : item;
-          const rawText = raw.text || raw.content || JSON.stringify(raw);
-          const imageUrl = resolveImageUrl(raw, rawText);
+          const rawText = extractText(item);
+          const imageUrl = extractImage(item, rawText);
           const cleanText = removeImagePromptTag(rawText);
-          const itemChannel = raw.canal || raw.channel || channelLabels[i] || channelLabels[0];
+          const chan = ((typeof item === "object" && item !== null) ? (item.canal || item.channel) : null) || channelLabels[i] || channelLabels[0];
           newContents.push({
             id: `${Date.now()}-${i}`,
-            canal: itemChannel,
-            channelId: getChannelId(itemChannel),
+            canal: chan,
+            channelId: getChannelId(chan),
             title: extractTitle(cleanText),
             summary: extractSummary(cleanText),
             fullText: cleanText,
@@ -733,10 +747,9 @@ const FabricaConteudo = () => {
                     </div>
                     {/* Caption */}
                     <div className="bg-muted rounded-2xl p-4">
-                      <div
-                        className="text-sm text-foreground leading-relaxed whitespace-pre-wrap [&_h1]:text-primary [&_h1]:font-bold [&_b]:font-bold [&_strong]:font-bold"
-                        dangerouslySetInnerHTML={{ __html: viewingContent.fullText }}
-                      />
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                        {viewingContent.fullText}
+                      </p>
                     </div>
                   </div>
                 )}

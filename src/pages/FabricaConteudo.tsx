@@ -276,10 +276,11 @@ const FabricaConteudo = () => {
       } else {
         const items = Array.isArray(data) ? data : [data];
         items.forEach((item: any, i: number) => {
-          const raw = typeof item === "string" ? { text: item } : item;
-          const rawText = raw.text || raw.content || JSON.stringify(raw);
-          const imageUrl = resolveImageUrl(raw, rawText);
+          const rawText = extractText(item);
+          const imageUrl = extractImage(item, rawText);
           const cleanText = removeImagePromptTag(rawText);
+          const itemChannel = (typeof item === "object" && item !== null) ? (item.canal || item.channel) : null;
+          const channel = itemChannel || channelLabels[i] || channelLabels[0];
           const itemChannel = raw.canal || raw.channel || channelLabels[i] || channelLabels[0];
           newContents.push({
             id: `${Date.now()}-${i}`,

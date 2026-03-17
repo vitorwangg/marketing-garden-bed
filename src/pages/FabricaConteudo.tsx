@@ -325,9 +325,6 @@ const FabricaConteudo = () => {
     setPrompt("");
     setShowSuggestions(false);
   };
-    setPrompt("");
-    setShowSuggestions(false);
-  };
 
   const handleDelete = (id: string) => {
     setContents(prev => prev.filter(c => c.id !== id));

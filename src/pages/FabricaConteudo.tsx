@@ -591,9 +591,30 @@ const FabricaConteudo = () => {
                           </div>
                         )}
 
-                        {/* Title & Summary */}
-                        <h3 className="text-sm font-bold text-foreground mb-1 line-clamp-2">{content.title}</h3>
-                        <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-3">{content.summary}</p>
+                        {/* Image preview */}
+                        {content.imageUrl && (
+                          <div className="mb-3 rounded-xl overflow-hidden bg-muted" style={{ aspectRatio: content.channelId === "blog" ? "16/9" : "1/1", maxHeight: "200px" }}>
+                            <img src={content.imageUrl} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+
+                        {/* Channel-specific text preview */}
+                        {content.channelId === "blog" || content.channelId === "email" ? (
+                          <>
+                            <h3 className="text-sm font-bold text-foreground mb-1 line-clamp-2">{content.title}</h3>
+                            <div
+                              className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-4 [&_h2]:font-semibold [&_h2]:text-foreground [&_p]:mb-1"
+                              dangerouslySetInnerHTML={{ __html: content.fullText }}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <h3 className="text-sm font-bold text-foreground mb-1 line-clamp-2">{content.title}</h3>
+                            <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-4 whitespace-pre-wrap">
+                              {cleanDisplayText(content.fullText)}
+                            </p>
+                          </>
+                        )}
 
                         {/* Ver Completo */}
                         <button onClick={() => setViewingContent(content)}

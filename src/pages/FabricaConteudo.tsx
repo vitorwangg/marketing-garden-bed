@@ -165,8 +165,8 @@ const FabricaConteudo = () => {
       toast.error("⚠️ Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.");
       return;
     }
+    if (isGenerating) return;
 
-    // 1. Limpa estado anterior e ativa loading
     setContents([]);
     setViewingContent(null);
     setIsGenerating(true);
@@ -175,21 +175,29 @@ const FabricaConteudo = () => {
       ? selectedChannels.map(id => channels.find(c => c.id === id)?.label || "Instagram")
       : ["Instagram"];
 
-    // Build brand DNA context for AI injection
-    const brandDNA = {
-      nome: selectedBrand.nome_da_marca,
-      pitch_bio: selectedBrand.pitch_bio,
-      tom_de_voz: selectedBrand.tom_de_voz || [],
-      palavras_proibidas: selectedBrand.palavras_proibidas || [],
-      publico_faixa_etaria: selectedBrand.publico_faixa_etaria || [],
-      publico_genero: selectedBrand.publico_genero,
-      mercado_nicho: selectedBrand.mercado_nicho || [],
-      idioma_padrao: selectedBrand.idioma_padrao || "PT-BR",
-      logo_url: getSelectedLogoUrl(),
-      logo_versao: selectedLogo,
+    const safe = (val: string | null | undefined): string => val ?? "";
+    const safeArr = (val: string[] | null | undefined): string => (val ?? []).join(", ");
+
+    const payload = {
+      tema: prompt.trim() || `Crie conteúdo para ${safe(selectedBrand.nome_da_marca)}`,
+      canais: channelLabels,
+      logo: selectedLogo,
+      logo_url: getSelectedLogoUrl() ?? "",
+      nome_da_marca: safe(selectedBrand.nome_da_marca),
+      pitch_bio: safe(selectedBrand.pitch_bio),
+      idioma_padrao: safe(selectedBrand.idioma_padrao) || "PT-BR",
+      modelo_venda: safe(selectedBrand.modelo_venda),
+      mercado_nicho: safeArr(selectedBrand.mercado_nicho),
+      tom_de_voz: safeArr(selectedBrand.tom_de_voz),
+      palavras_proibidas: safeArr(selectedBrand.palavras_proibidas),
+      publico_alvo: [
+        safe(selectedBrand.publico_genero),
+        safeArr(selectedBrand.publico_faixa_etaria),
+      ].filter(Boolean).join(" — ") || "",
     };
 
-    // 2. Timeout de 30s
+    console.log("Dados enviados ao n8n:", payload);
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -197,46 +205,25 @@ const FabricaConteudo = () => {
       const res = await fetch("https://vwg.app.n8n.cloud/webhook-test/gerar-conteudo", {
         method: "POST",
         mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: prompt.trim() || `Crie conteúdo para ${selectedBrand.nome_da_marca}`,
-          canais: channelLabels,
-          marca: selectedBrand.nome_da_marca,
-          logo: selectedLogo,
-          logo_url: getSelectedLogoUrl(),
-          brand_dna: brandDNA,
-          instrucoes_ia: [
-            "CONTEXTO DA MARCA: " + (brandDNA.pitch_bio || "Não informado") + ".",
-            "TOM DE VOZ: Escreva usando o tom: " + (brandDNA.tom_de_voz.length > 0 ? brandDNA.tom_de_voz.join(", ") : "Neutro") + ".",
-            "PALAVRAS PROIBIDAS: As seguintes palavras JAMAIS podem aparecer no texto, sob NENHUMA circunstância: [" + brandDNA.palavras_proibidas.join(", ") + "].",
-            "PÚBLICO-ALVO: Faixa etária " + (brandDNA.publico_faixa_etaria.join(", ") || "geral") + ", gênero " + (brandDNA.publico_genero || "todos") + ". Ajuste a linguagem, gírias e nível de formalidade para esse perfil.",
-            "MERCADO/NICHO: " + (brandDNA.mercado_nicho.join(", ") || "Geral") + ". Use essas referências de mercado para dar autoridade ao texto.",
-            "IDIOMA: Responda OBRIGATORIAMENTE no idioma: " + brandDNA.idioma_padrao + ".",
-          ].join("\n"),
-        }),
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(payload),
         signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
-
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const rawData = await res.json();
       console.log("Resposta n8n:", rawData);
 
-      // Parse string responses
       let parsed = rawData;
       if (typeof rawData === "string") {
         try { parsed = JSON.parse(rawData); } catch { parsed = rawData; }
       }
 
-      // Support `data` wrapper
-      let payload = parsed?.data || parsed;
-      if (typeof payload === "string") {
-        try { payload = JSON.parse(payload); } catch { /* keep */ }
+      let data = parsed?.data || parsed;
+      if (typeof data === "string") {
+        try { data = JSON.parse(data); } catch { /* keep */ }
       }
 
       const resolveImageUrl = (item: any, text: string): string | undefined => {
@@ -249,9 +236,9 @@ const FabricaConteudo = () => {
 
       const newContents: GeneratedContent[] = [];
 
-      if (typeof payload === "object" && payload !== null && !Array.isArray(payload)) {
-        Object.keys(payload).forEach((channelKey, i) => {
-          const value = payload[channelKey];
+      if (typeof data === "object" && data !== null && !Array.isArray(data)) {
+        Object.keys(data).forEach((channelKey, i) => {
+          const value = data[channelKey];
           const item = typeof value === "string" ? { text: value } : value;
           const rawText = item?.texto || item?.text || item?.content || item?.caption || JSON.stringify(item);
           const imageUrl = item?.imagem || item?.image || item?.imageUrl || item?.image_url || resolveImageUrl(item, rawText);
@@ -272,7 +259,7 @@ const FabricaConteudo = () => {
           });
         });
       } else {
-        const items = Array.isArray(payload) ? payload : [payload];
+        const items = Array.isArray(data) ? data : [data];
         items.forEach((item: any, i: number) => {
           const raw = typeof item === "string" ? { text: item } : item;
           const rawText = raw.text || raw.content || JSON.stringify(raw);

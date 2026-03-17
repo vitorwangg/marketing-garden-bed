@@ -470,7 +470,7 @@ IDIOMA: Responda OBRIGATORIAMENTE no idioma: ${brandDNA.idioma_padrao}.`,
                     </AnimatePresence>
                   </div>
                   <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.9 }}
-                    onClick={handleSendPrompt} disabled={!selectedBrand || isGenerating}
+                    onClick={handleSendPrompt} disabled={!selectedBrandId || isGenerating}
                     className="h-12 gradient-peach rounded-full flex items-center justify-center disabled:opacity-50 gap-2 px-4 min-w-[48px]">
                     {isGenerating ? (
                       <>

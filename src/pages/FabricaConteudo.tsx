@@ -76,6 +76,20 @@ function removeImagePromptTag(text: string): string {
   return text.replace(/\[IMAGE_PROMPT:\s*.*?\]/gis, "").trim();
 }
 
+/** Strip leftover JSON artifacts: bare keys, quotes, URLs in plain-text area */
+function cleanDisplayText(text: string): string {
+  let t = text;
+  // Remove raw image URLs that leaked into caption text
+  t = t.replace(/https?:\/\/\S+\.(jpg|jpeg|png|gif|webp|svg)(\?\S*)?\s*/gi, "");
+  // Remove JSON-like key patterns e.g. "Instagram": or {Instagram:
+  t = t.replace(/^\s*[{"\s]*[A-Za-zÀ-ÿ_-]+["\s]*:\s*/gm, "");
+  // Remove trailing braces/brackets
+  t = t.replace(/[{}[\]]+/g, "");
+  // Remove orphan quotes
+  t = t.replace(/^["']+|["']+$/gm, "");
+  return t.trim();
+}
+
 function pollinationsUrl(prompt: string): string {
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true`;
 }

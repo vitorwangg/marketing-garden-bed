@@ -107,11 +107,13 @@ function getChannelLabel(channelId: string) {
   return channels.find(c => c.id === channelId)?.label || channelId;
 }
 
+type Marca = Tables<"marcas">;
+
 const FabricaConteudo = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"criacao" | "aprovacao" | "historico">("criacao");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState("");
+  const [selectedBrandId, setSelectedBrandId] = useState("");
   const [selectedLogo, setSelectedLogo] = useState<string>(logoVersions[0]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [contents, setContents] = useState<GeneratedContent[]>([]);
@@ -122,6 +124,37 @@ const FabricaConteudo = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingContent, setViewingContent] = useState<GeneratedContent | null>(null);
+  const [brands, setBrands] = useState<Marca[]>([]);
+
+  // Fetch brands from Supabase
+  useEffect(() => {
+    if (!user) return;
+    const fetchBrands = async () => {
+      const { data, error } = await supabase
+        .from("marcas")
+        .select("*")
+        .eq("user_id", user.email);
+      if (error) {
+        console.error("Erro ao buscar marcas:", error);
+        return;
+      }
+      setBrands(data || []);
+    };
+    fetchBrands();
+  }, [user]);
+
+  const selectedBrand = brands.find(b => b.id === selectedBrandId) || null;
+
+  // Resolve logo URL based on selected logo version
+  const getSelectedLogoUrl = (): string | null => {
+    if (!selectedBrand) return null;
+    switch (selectedLogo) {
+      case "Principal": return selectedBrand.logo_principal_url;
+      case "Monocromática": return selectedBrand.logo_branca_url;
+      case "Ícone": return selectedBrand.logo_preta_url;
+      default: return selectedBrand.logo_principal_url;
+    }
+  };
 
   const toggleChannel = (id: string) => {
     setSelectedChannels(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);

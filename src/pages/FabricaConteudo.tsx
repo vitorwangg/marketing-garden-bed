@@ -1,13 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import {
   Sparkles, Send, Clock, CheckCircle, Flame, Search, TrendingUp,
   Instagram, Globe, Twitter, ChevronDown, Image, FileText, Trash2,
-  Eye, X, CalendarIcon, Loader2, Mail, CheckCheck
+  Eye, X, CalendarIcon, Loader2, Mail, CheckCheck, AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -105,11 +107,13 @@ function getChannelLabel(channelId: string) {
   return channels.find(c => c.id === channelId)?.label || channelId;
 }
 
+type Marca = Tables<"marcas">;
+
 const FabricaConteudo = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"criacao" | "aprovacao" | "historico">("criacao");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState("");
+  const [selectedBrandId, setSelectedBrandId] = useState("");
   const [selectedLogo, setSelectedLogo] = useState<string>(logoVersions[0]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [contents, setContents] = useState<GeneratedContent[]>([]);
@@ -120,13 +124,49 @@ const FabricaConteudo = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingContent, setViewingContent] = useState<GeneratedContent | null>(null);
+  const [brands, setBrands] = useState<Marca[]>([]);
+
+  // Fetch brands from Supabase
+  useEffect(() => {
+    if (!user) return;
+    const fetchBrands = async () => {
+      const { data, error } = await supabase
+        .from("marcas")
+        .select("*")
+        .eq("user_id", user.email);
+      if (error) {
+        console.error("Erro ao buscar marcas:", error);
+        return;
+      }
+      setBrands(data || []);
+    };
+    fetchBrands();
+  }, [user]);
+
+  const selectedBrand = brands.find(b => b.id === selectedBrandId) || null;
+
+  // Resolve logo URL based on selected logo version
+  const getSelectedLogoUrl = (): string | null => {
+    if (!selectedBrand) return null;
+    switch (selectedLogo) {
+      case "Principal": return selectedBrand.logo_principal_url;
+      case "Monocromática": return selectedBrand.logo_branca_url;
+      case "Ícone": return selectedBrand.logo_preta_url;
+      default: return selectedBrand.logo_principal_url;
+    }
+  };
 
   const toggleChannel = (id: string) => {
     setSelectedChannels(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
   };
 
   const handleGenerate = async () => {
-    if (!selectedBrand) return;
+    if (!selectedBrand) {
+      toast.error("Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.", {
+        icon: <AlertTriangle size={18} />,
+      });
+      return;
+    }
 
     // 1. Limpa estado anterior e ativa loading
     setContents([]);
@@ -136,6 +176,20 @@ const FabricaConteudo = () => {
     const channelLabels = selectedChannels.length > 0
       ? selectedChannels.map(id => channels.find(c => c.id === id)?.label || "Instagram")
       : ["Instagram"];
+
+    // Build brand DNA context for AI injection
+    const brandDNA = {
+      nome: selectedBrand.nome_da_marca,
+      pitch_bio: selectedBrand.pitch_bio,
+      tom_de_voz: selectedBrand.tom_de_voz || [],
+      palavras_proibidas: selectedBrand.palavras_proibidas || [],
+      publico_faixa_etaria: selectedBrand.publico_faixa_etaria || [],
+      publico_genero: selectedBrand.publico_genero,
+      mercado_nicho: selectedBrand.mercado_nicho || [],
+      idioma_padrao: selectedBrand.idioma_padrao || "PT-BR",
+      logo_url: getSelectedLogoUrl(),
+      logo_versao: selectedLogo,
+    };
 
     // 2. Timeout de 30s
     const controller = new AbortController();
@@ -150,10 +204,18 @@ const FabricaConteudo = () => {
           "Accept": "application/json",
         },
         body: JSON.stringify({
-          prompt: prompt.trim() || `Crie conteúdo para ${selectedBrand}`,
+          prompt: prompt.trim() || `Crie conteúdo para ${selectedBrand.nome_da_marca}`,
           canais: channelLabels,
-          marca: selectedBrand,
+          marca: selectedBrand.nome_da_marca,
           logo: selectedLogo,
+          logo_url: getSelectedLogoUrl(),
+          brand_dna: brandDNA,
+          instrucoes_ia: `CONTEXTO DA MARCA: ${brandDNA.pitch_bio || "Não informado"}.
+TOM DE VOZ: Escreva usando o tom: ${brandDNA.tom_de_voz.length > 0 ? brandDNA.tom_de_voz.join(", ") : "Neutro"}.
+PALAVRAS PROIBIDAS: As seguintes palavras JAMAIS podem aparecer no texto, sob NENHUMA circunstância: [${brandDNA.palavras_proibidas.join(", ")}].
+PÚBLICO-ALVO: Faixa etária ${brandDNA.publico_faixa_etaria.join(", ") || "geral"}, gênero ${brandDNA.publico_genero || "todos"}. Ajuste a linguagem, gírias e nível de formalidade para esse perfil.
+MERCADO/NICHO: ${brandDNA.mercado_nicho.join(", ") || "Geral"}. Use essas referências de mercado para dar autoridade ao texto.
+IDIOMA: Responda OBRIGATORIAMENTE no idioma: ${brandDNA.idioma_padrao}.`,
         }),
         signal: controller.signal,
       });
@@ -254,8 +316,17 @@ const FabricaConteudo = () => {
   };
 
   const handleSendPrompt = () => {
-    if (!prompt.trim() || !selectedBrand) return;
+    if (!selectedBrand) {
+      toast.error("Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.", {
+        icon: <AlertTriangle size={18} />,
+      });
+      return;
+    }
+    if (!prompt.trim()) return;
     handleGenerate();
+    setPrompt("");
+    setShowSuggestions(false);
+  };
     setPrompt("");
     setShowSuggestions(false);
   };
@@ -281,7 +352,7 @@ const FabricaConteudo = () => {
       channel: content.canal,
       image: content.imageUrl || "",
       caption: content.summary,
-      usedBrand: selectedBrand,
+      usedBrand: selectedBrand?.nome_da_marca || "",
       usedVoice: "Padrão",
     };
     setHistory(prev => [historyItem, ...prev]);
@@ -298,7 +369,7 @@ const FabricaConteudo = () => {
       channel: content.canal,
       image: content.imageUrl || "",
       caption: content.summary,
-      usedBrand: selectedBrand,
+      usedBrand: selectedBrand?.nome_da_marca || "",
       usedVoice: "Padrão",
     }));
     setHistory(prev => [...newHistory, ...prev]);
@@ -349,10 +420,10 @@ const FabricaConteudo = () => {
               <h2 className="font-bold text-foreground mb-4">O que você quer criar hoje?</h2>
 
               <div className="flex flex-wrap gap-3 mb-4">
-                <select value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}
+                <select value={selectedBrandId} onChange={(e) => setSelectedBrandId(e.target.value)}
                   className="bg-muted border border-border rounded-2xl px-4 py-2.5 text-sm font-medium text-foreground focus-glow min-w-[200px]">
-                  <option value="">Selecionar marca *</option>
-                  {user?.brands.map((b) => <option key={b} value={b}>{b}</option>)}
+                  <option value="">Selecionar marca (DNA) *</option>
+                  {brands.map((b) => <option key={b.id} value={b.id}>{b.nome_da_marca || "Sem nome"}</option>)}
                 </select>
                 <select value={selectedLogo} onChange={(e) => setSelectedLogo(e.target.value)}
                   className="bg-muted border border-border rounded-2xl px-4 py-2.5 text-sm font-medium text-foreground focus-glow">
@@ -380,8 +451,8 @@ const FabricaConteudo = () => {
                     <input value={prompt} onChange={(e) => { setPrompt(e.target.value); setShowSuggestions(true); }}
                       onFocus={() => prompt.trim() && setShowSuggestions(true)}
                       onKeyDown={(e) => { if (e.key === "Enter") handleSendPrompt(); }}
-                      placeholder={selectedBrand ? `Descreva o conteúdo para ${selectedBrand}...` : "Selecione uma marca primeiro..."}
-                      disabled={!selectedBrand}
+                      placeholder={selectedBrand ? `Descreva o conteúdo para ${selectedBrand.nome_da_marca}...` : "Selecione uma marca primeiro..."}
+                      disabled={!selectedBrandId}
                       className="w-full bg-muted rounded-full px-5 py-3.5 text-sm text-foreground focus-glow disabled:opacity-50" />
                     <AnimatePresence>
                       {showSuggestions && filteredSuggestions.length > 0 && (
@@ -399,7 +470,7 @@ const FabricaConteudo = () => {
                     </AnimatePresence>
                   </div>
                   <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.9 }}
-                    onClick={handleSendPrompt} disabled={!selectedBrand || isGenerating}
+                    onClick={handleSendPrompt} disabled={!selectedBrandId || isGenerating}
                     className="h-12 gradient-peach rounded-full flex items-center justify-center disabled:opacity-50 gap-2 px-4 min-w-[48px]">
                     {isGenerating ? (
                       <>

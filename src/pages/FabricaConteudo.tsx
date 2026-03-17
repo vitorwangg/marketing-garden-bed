@@ -234,14 +234,27 @@ const FabricaConteudo = () => {
         return undefined;
       };
 
-      const newContents: GeneratedContent[] = [];
+      const extractText = (val: any): string => {
+        if (typeof val === "string") return val;
+        if (val && typeof val === "object") {
+          return val.texto || val.text || val.content || val.caption || val.body || "";
+        }
+        return "";
+      };
+
+      const extractImage = (val: any, text: string): string | undefined => {
+        if (val && typeof val === "object") {
+          const img = val.imagem || val.image || val.imageUrl || val.image_url;
+          if (img) return img;
+        }
+        return resolveImageUrl(val, text);
+      };
 
       if (typeof data === "object" && data !== null && !Array.isArray(data)) {
         Object.keys(data).forEach((channelKey, i) => {
           const value = data[channelKey];
-          const item = typeof value === "string" ? { text: value } : value;
-          const rawText = item?.texto || item?.text || item?.content || item?.caption || JSON.stringify(item);
-          const imageUrl = item?.imagem || item?.image || item?.imageUrl || item?.image_url || resolveImageUrl(item, rawText);
+          const rawText = extractText(value);
+          const imageUrl = extractImage(value, rawText);
           const cleanText = removeImagePromptTag(rawText);
           const matchedChannel = channels.find(
             c => c.label.toLowerCase() === channelKey.toLowerCase() || c.id.toLowerCase() === channelKey.toLowerCase()

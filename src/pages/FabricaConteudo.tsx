@@ -748,10 +748,9 @@ const FabricaConteudo = () => {
                     </div>
                     {/* Caption */}
                     <div className="bg-muted rounded-2xl p-4">
-                      <div
-                        className="text-sm text-foreground leading-relaxed whitespace-pre-wrap [&_h1]:text-primary [&_h1]:font-bold [&_b]:font-bold [&_strong]:font-bold"
-                        dangerouslySetInnerHTML={{ __html: viewingContent.fullText }}
-                      />
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                        {viewingContent.fullText}
+                      </p>
                     </div>
                   </div>
                 )}

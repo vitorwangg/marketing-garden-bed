@@ -316,8 +316,17 @@ IDIOMA: Responda OBRIGATORIAMENTE no idioma: ${brandDNA.idioma_padrao}.`,
   };
 
   const handleSendPrompt = () => {
-    if (!prompt.trim() || !selectedBrand) return;
+    if (!selectedBrand) {
+      toast.error("Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.", {
+        icon: <AlertTriangle size={18} />,
+      });
+      return;
+    }
+    if (!prompt.trim()) return;
     handleGenerate();
+    setPrompt("");
+    setShowSuggestions(false);
+  };
     setPrompt("");
     setShowSuggestions(false);
   };

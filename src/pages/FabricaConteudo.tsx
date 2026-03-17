@@ -369,7 +369,7 @@ IDIOMA: Responda OBRIGATORIAMENTE no idioma: ${brandDNA.idioma_padrao}.`,
       channel: content.canal,
       image: content.imageUrl || "",
       caption: content.summary,
-      usedBrand: selectedBrand,
+      usedBrand: selectedBrand?.nome_da_marca || "",
       usedVoice: "Padrão",
     }));
     setHistory(prev => [...newHistory, ...prev]);

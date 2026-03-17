@@ -783,7 +783,7 @@ const FabricaConteudo = () => {
                     {/* Caption */}
                     <div className="bg-muted rounded-2xl p-4">
                       <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                        {viewingContent.fullText}
+                        {cleanDisplayText(viewingContent.fullText)}
                       </p>
                     </div>
                   </div>

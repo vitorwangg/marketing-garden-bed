@@ -317,9 +317,7 @@ const FabricaConteudo = () => {
 
   const handleSendPrompt = () => {
     if (!selectedBrand) {
-      toast.error("Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.", {
-        icon: <AlertTriangle size={18} />,
-      });
+      toast.error("⚠️ Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.");
       return;
     }
     if (!prompt.trim()) return;

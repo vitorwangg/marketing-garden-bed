@@ -401,7 +401,7 @@ const FabricaConteudo = () => {
     return searchSuggestions.filter(s => s.toLowerCase().includes(prompt.toLowerCase())).slice(0, 5);
   }, [prompt]);
 
-  const filteredHistory = channelFilter ? history.filter(h => h.channel === channelFilter) : history;
+  const filteredHistory = channelFilter ? history.filter(h => h.channel === channelFilter || getChannelId(h.channel) === channelFilter) : history;
   const filteredContents = channelFilter ? contents.filter(c => c.channelId === channelFilter) : contents;
 
   const tabs = ["criacao", "aprovacao", "historico"] as const;

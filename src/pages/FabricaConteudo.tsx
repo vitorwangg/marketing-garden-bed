@@ -162,9 +162,7 @@ const FabricaConteudo = () => {
 
   const handleGenerate = async () => {
     if (!selectedBrand) {
-      toast.error("Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.", {
-        icon: <AlertTriangle size={18} />,
-      });
+      toast.error("⚠️ Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.");
       return;
     }
 
@@ -210,12 +208,14 @@ const FabricaConteudo = () => {
           logo: selectedLogo,
           logo_url: getSelectedLogoUrl(),
           brand_dna: brandDNA,
-          instrucoes_ia: `CONTEXTO DA MARCA: ${brandDNA.pitch_bio || "Não informado"}.
-TOM DE VOZ: Escreva usando o tom: ${brandDNA.tom_de_voz.length > 0 ? brandDNA.tom_de_voz.join(", ") : "Neutro"}.
-PALAVRAS PROIBIDAS: As seguintes palavras JAMAIS podem aparecer no texto, sob NENHUMA circunstância: [${brandDNA.palavras_proibidas.join(", ")}].
-PÚBLICO-ALVO: Faixa etária ${brandDNA.publico_faixa_etaria.join(", ") || "geral"}, gênero ${brandDNA.publico_genero || "todos"}. Ajuste a linguagem, gírias e nível de formalidade para esse perfil.
-MERCADO/NICHO: ${brandDNA.mercado_nicho.join(", ") || "Geral"}. Use essas referências de mercado para dar autoridade ao texto.
-IDIOMA: Responda OBRIGATORIAMENTE no idioma: ${brandDNA.idioma_padrao}.`,
+          instrucoes_ia: [
+            "CONTEXTO DA MARCA: " + (brandDNA.pitch_bio || "Não informado") + ".",
+            "TOM DE VOZ: Escreva usando o tom: " + (brandDNA.tom_de_voz.length > 0 ? brandDNA.tom_de_voz.join(", ") : "Neutro") + ".",
+            "PALAVRAS PROIBIDAS: As seguintes palavras JAMAIS podem aparecer no texto, sob NENHUMA circunstância: [" + brandDNA.palavras_proibidas.join(", ") + "].",
+            "PÚBLICO-ALVO: Faixa etária " + (brandDNA.publico_faixa_etaria.join(", ") || "geral") + ", gênero " + (brandDNA.publico_genero || "todos") + ". Ajuste a linguagem, gírias e nível de formalidade para esse perfil.",
+            "MERCADO/NICHO: " + (brandDNA.mercado_nicho.join(", ") || "Geral") + ". Use essas referências de mercado para dar autoridade ao texto.",
+            "IDIOMA: Responda OBRIGATORIAMENTE no idioma: " + brandDNA.idioma_padrao + ".",
+          ].join("\n"),
         }),
         signal: controller.signal,
       });
@@ -317,16 +317,11 @@ IDIOMA: Responda OBRIGATORIAMENTE no idioma: ${brandDNA.idioma_padrao}.`,
 
   const handleSendPrompt = () => {
     if (!selectedBrand) {
-      toast.error("Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.", {
-        icon: <AlertTriangle size={18} />,
-      });
+      toast.error("⚠️ Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.");
       return;
     }
     if (!prompt.trim()) return;
     handleGenerate();
-    setPrompt("");
-    setShowSuggestions(false);
-  };
     setPrompt("");
     setShowSuggestions(false);
   };

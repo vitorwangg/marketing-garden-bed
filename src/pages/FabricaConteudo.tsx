@@ -161,7 +161,12 @@ const FabricaConteudo = () => {
   };
 
   const handleGenerate = async () => {
-    if (!selectedBrand) return;
+    if (!selectedBrand) {
+      toast.error("Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.", {
+        icon: <AlertTriangle size={18} />,
+      });
+      return;
+    }
 
     // 1. Limpa estado anterior e ativa loading
     setContents([]);
@@ -171,6 +176,20 @@ const FabricaConteudo = () => {
     const channelLabels = selectedChannels.length > 0
       ? selectedChannels.map(id => channels.find(c => c.id === id)?.label || "Instagram")
       : ["Instagram"];
+
+    // Build brand DNA context for AI injection
+    const brandDNA = {
+      nome: selectedBrand.nome_da_marca,
+      pitch_bio: selectedBrand.pitch_bio,
+      tom_de_voz: selectedBrand.tom_de_voz || [],
+      palavras_proibidas: selectedBrand.palavras_proibidas || [],
+      publico_faixa_etaria: selectedBrand.publico_faixa_etaria || [],
+      publico_genero: selectedBrand.publico_genero,
+      mercado_nicho: selectedBrand.mercado_nicho || [],
+      idioma_padrao: selectedBrand.idioma_padrao || "PT-BR",
+      logo_url: getSelectedLogoUrl(),
+      logo_versao: selectedLogo,
+    };
 
     // 2. Timeout de 30s
     const controller = new AbortController();
@@ -185,10 +204,18 @@ const FabricaConteudo = () => {
           "Accept": "application/json",
         },
         body: JSON.stringify({
-          prompt: prompt.trim() || `Crie conteúdo para ${selectedBrand}`,
+          prompt: prompt.trim() || `Crie conteúdo para ${selectedBrand.nome_da_marca}`,
           canais: channelLabels,
-          marca: selectedBrand,
+          marca: selectedBrand.nome_da_marca,
           logo: selectedLogo,
+          logo_url: getSelectedLogoUrl(),
+          brand_dna: brandDNA,
+          instrucoes_ia: `CONTEXTO DA MARCA: ${brandDNA.pitch_bio || "Não informado"}.
+TOM DE VOZ: Escreva usando o tom: ${brandDNA.tom_de_voz.length > 0 ? brandDNA.tom_de_voz.join(", ") : "Neutro"}.
+PALAVRAS PROIBIDAS: As seguintes palavras JAMAIS podem aparecer no texto, sob NENHUMA circunstância: [${brandDNA.palavras_proibidas.join(", ")}].
+PÚBLICO-ALVO: Faixa etária ${brandDNA.publico_faixa_etaria.join(", ") || "geral"}, gênero ${brandDNA.publico_genero || "todos"}. Ajuste a linguagem, gírias e nível de formalidade para esse perfil.
+MERCADO/NICHO: ${brandDNA.mercado_nicho.join(", ") || "Geral"}. Use essas referências de mercado para dar autoridade ao texto.
+IDIOMA: Responda OBRIGATORIAMENTE no idioma: ${brandDNA.idioma_padrao}.`,
         }),
         signal: controller.signal,
       });

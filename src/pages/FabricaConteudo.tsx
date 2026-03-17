@@ -279,13 +279,11 @@ const FabricaConteudo = () => {
           const rawText = extractText(item);
           const imageUrl = extractImage(item, rawText);
           const cleanText = removeImagePromptTag(rawText);
-          const itemChannel = (typeof item === "object" && item !== null) ? (item.canal || item.channel) : null;
-          const channel = itemChannel || channelLabels[i] || channelLabels[0];
-          const itemChannel = raw.canal || raw.channel || channelLabels[i] || channelLabels[0];
+          const chan = ((typeof item === "object" && item !== null) ? (item.canal || item.channel) : null) || channelLabels[i] || channelLabels[0];
           newContents.push({
             id: `${Date.now()}-${i}`,
-            canal: itemChannel,
-            channelId: getChannelId(itemChannel),
+            canal: chan,
+            channelId: getChannelId(chan),
             title: extractTitle(cleanText),
             summary: extractSummary(cleanText),
             fullText: cleanText,

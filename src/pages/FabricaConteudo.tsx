@@ -451,8 +451,8 @@ IDIOMA: Responda OBRIGATORIAMENTE no idioma: ${brandDNA.idioma_padrao}.`,
                     <input value={prompt} onChange={(e) => { setPrompt(e.target.value); setShowSuggestions(true); }}
                       onFocus={() => prompt.trim() && setShowSuggestions(true)}
                       onKeyDown={(e) => { if (e.key === "Enter") handleSendPrompt(); }}
-                      placeholder={selectedBrand ? `Descreva o conteúdo para ${selectedBrand}...` : "Selecione uma marca primeiro..."}
-                      disabled={!selectedBrand}
+                      placeholder={selectedBrand ? `Descreva o conteúdo para ${selectedBrand.nome_da_marca}...` : "Selecione uma marca primeiro..."}
+                      disabled={!selectedBrandId}
                       className="w-full bg-muted rounded-full px-5 py-3.5 text-sm text-foreground focus-glow disabled:opacity-50" />
                     <AnimatePresence>
                       {showSuggestions && filteredSuggestions.length > 0 && (

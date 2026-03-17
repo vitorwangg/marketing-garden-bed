@@ -250,6 +250,8 @@ const FabricaConteudo = () => {
         return resolveImageUrl(val, text);
       };
 
+      const newContents: GeneratedContent[] = [];
+
       if (typeof data === "object" && data !== null && !Array.isArray(data)) {
         Object.keys(data).forEach((channelKey, i) => {
           const value = data[channelKey];

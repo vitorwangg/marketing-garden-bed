@@ -420,10 +420,10 @@ IDIOMA: Responda OBRIGATORIAMENTE no idioma: ${brandDNA.idioma_padrao}.`,
               <h2 className="font-bold text-foreground mb-4">O que você quer criar hoje?</h2>
 
               <div className="flex flex-wrap gap-3 mb-4">
-                <select value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}
+                <select value={selectedBrandId} onChange={(e) => setSelectedBrandId(e.target.value)}
                   className="bg-muted border border-border rounded-2xl px-4 py-2.5 text-sm font-medium text-foreground focus-glow min-w-[200px]">
-                  <option value="">Selecionar marca *</option>
-                  {user?.brands.map((b) => <option key={b} value={b}>{b}</option>)}
+                  <option value="">Selecionar marca (DNA) *</option>
+                  {brands.map((b) => <option key={b.id} value={b.id}>{b.nome_da_marca || "Sem nome"}</option>)}
                 </select>
                 <select value={selectedLogo} onChange={(e) => setSelectedLogo(e.target.value)}
                   className="bg-muted border border-border rounded-2xl px-4 py-2.5 text-sm font-medium text-foreground focus-glow">

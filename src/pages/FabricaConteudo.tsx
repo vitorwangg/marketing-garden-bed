@@ -76,6 +76,20 @@ function removeImagePromptTag(text: string): string {
   return text.replace(/\[IMAGE_PROMPT:\s*.*?\]/gis, "").trim();
 }
 
+/** Strip leftover JSON artifacts: bare keys, quotes, URLs in plain-text area */
+function cleanDisplayText(text: string): string {
+  let t = text;
+  // Remove raw image URLs that leaked into caption text
+  t = t.replace(/https?:\/\/\S+\.(jpg|jpeg|png|gif|webp|svg)(\?\S*)?\s*/gi, "");
+  // Remove JSON-like key patterns e.g. "Instagram": or {Instagram:
+  t = t.replace(/^\s*[{"\s]*[A-Za-zÀ-ÿ_-]+["\s]*:\s*/gm, "");
+  // Remove trailing braces/brackets
+  t = t.replace(/[{}[\]]+/g, "");
+  // Remove orphan quotes
+  t = t.replace(/^["']+|["']+$/gm, "");
+  return t.trim();
+}
+
 function pollinationsUrl(prompt: string): string {
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true`;
 }
@@ -577,9 +591,30 @@ const FabricaConteudo = () => {
                           </div>
                         )}
 
-                        {/* Title & Summary */}
-                        <h3 className="text-sm font-bold text-foreground mb-1 line-clamp-2">{content.title}</h3>
-                        <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-3">{content.summary}</p>
+                        {/* Image preview */}
+                        {content.imageUrl && (
+                          <div className="mb-3 rounded-xl overflow-hidden bg-muted" style={{ aspectRatio: content.channelId === "blog" ? "16/9" : "1/1", maxHeight: "200px" }}>
+                            <img src={content.imageUrl} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+
+                        {/* Channel-specific text preview */}
+                        {content.channelId === "blog" || content.channelId === "email" ? (
+                          <>
+                            <h3 className="text-sm font-bold text-foreground mb-1 line-clamp-2">{content.title}</h3>
+                            <div
+                              className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-4 [&_h2]:font-semibold [&_h2]:text-foreground [&_p]:mb-1"
+                              dangerouslySetInnerHTML={{ __html: content.fullText }}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <h3 className="text-sm font-bold text-foreground mb-1 line-clamp-2">{content.title}</h3>
+                            <p className="text-xs text-muted-foreground mb-3 leading-relaxed line-clamp-4 whitespace-pre-wrap">
+                              {cleanDisplayText(content.fullText)}
+                            </p>
+                          </>
+                        )}
 
                         {/* Ver Completo */}
                         <button onClick={() => setViewingContent(content)}
@@ -748,7 +783,7 @@ const FabricaConteudo = () => {
                     {/* Caption */}
                     <div className="bg-muted rounded-2xl p-4">
                       <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                        {viewingContent.fullText}
+                        {cleanDisplayText(viewingContent.fullText)}
                       </p>
                     </div>
                   </div>

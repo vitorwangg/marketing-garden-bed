@@ -1,13 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import {
   Sparkles, Send, Clock, CheckCircle, Flame, Search, TrendingUp,
   Instagram, Globe, Twitter, ChevronDown, Image, FileText, Trash2,
-  Eye, X, CalendarIcon, Loader2, Mail, CheckCheck
+  Eye, X, CalendarIcon, Loader2, Mail, CheckCheck, AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";

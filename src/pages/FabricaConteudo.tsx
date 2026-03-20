@@ -732,8 +732,9 @@ const FabricaConteudo = () => {
                         <div className="flex gap-2">
                           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                             onClick={() => handlePost(content)}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full gradient-peach text-primary-foreground text-xs font-semibold shadow-card">
-                            <Send size={13} /> Publicar
+                            disabled={!!publishingId}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full gradient-peach text-primary-foreground text-xs font-semibold shadow-card disabled:opacity-50">
+                            {publishingId === content.id ? <><Loader2 size={13} className="animate-spin" /> Publicando...</> : <><Send size={13} /> Publicar</>}
                           </motion.button>
                           <ScheduleButton contentId={content.id} onSchedule={handleSchedule} />
                           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}

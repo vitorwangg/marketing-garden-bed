@@ -61,10 +61,13 @@ interface HistoryItem {
   status: string;
   date: string;
   channel: string;
+  channelId: string;
   image: string;
   caption: string;
+  fullText: string;
   usedBrand: string;
   usedVoice: string;
+  scheduledDate?: string;
 }
 
 function extractImagePrompt(text: string): string | undefined {

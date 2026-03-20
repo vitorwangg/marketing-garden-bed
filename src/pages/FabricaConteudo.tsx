@@ -389,48 +389,117 @@ const FabricaConteudo = () => {
     toast("Todos os conteúdos foram removidos");
   };
 
-  const handlePost = (content: GeneratedContent) => {
-    // Move to history
-    const historyItem: HistoryItem = {
-      id: content.id,
-      title: content.title,
-      status: "publicado",
-      date: format(new Date(), "dd/MM/yyyy HH:mm"),
-      channel: content.canal,
-      image: content.imageUrl || "",
-      caption: content.summary,
-      usedBrand: selectedBrand?.nome_da_marca || "",
-      usedVoice: "Padrão",
-    };
-    setHistory(prev => [historyItem, ...prev]);
-    setContents(prev => prev.filter(c => c.id !== content.id));
-    toast.success(`Publicado em ${content.canal}! (simulado)`);
+  const handlePost = async (content: GeneratedContent) => {
+    if (publishingId) return;
+    setPublishingId(content.id);
+
+    try {
+      const payload = {
+        imagem: content.imageUrl || "",
+        texto: content.fullText || "",
+        canal: content.canal || "",
+        agendar: false,
+      };
+      console.log("Publicando no n8n:", payload);
+
+      const res = await fetch("https://vwg.app.n8n.cloud/webhook/ac75015e-deda-4440-bb1f-c434c902def1", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      // Save to Supabase
+      await supabase.from("conteudos").insert({
+        user_id: user?.email || "",
+        marca_id: selectedBrand?.id || null,
+        canal: content.canal,
+        channel_id: content.channelId,
+        titulo: content.title,
+        resumo: content.summary,
+        texto_completo: content.fullText,
+        imagem_url: content.imageUrl || null,
+        status: "publicado",
+        data_publicada: new Date().toISOString(),
+        marca_nome: selectedBrand?.nome_da_marca || "",
+        tom_de_voz: selectedBrand?.tom_de_voz?.join(", ") || "Padrão",
+      });
+
+      const historyItem: HistoryItem = {
+        id: content.id,
+        title: content.title,
+        status: "publicado",
+        date: format(new Date(), "dd/MM/yyyy HH:mm"),
+        channel: content.canal,
+        channelId: content.channelId,
+        image: content.imageUrl || "",
+        caption: content.summary,
+        fullText: content.fullText,
+        usedBrand: selectedBrand?.nome_da_marca || "",
+        usedVoice: selectedBrand?.tom_de_voz?.join(", ") || "Padrão",
+      };
+      setHistory(prev => [historyItem, ...prev]);
+      setContents(prev => prev.filter(c => c.id !== content.id));
+      toast.success(`Publicado em ${content.canal}! ✅`);
+    } catch (err: any) {
+      console.error("Erro ao publicar:", err);
+      toast.error(`Erro ao publicar: ${err.message}`);
+    } finally {
+      setPublishingId(null);
+    }
   };
 
-  const handlePostAll = () => {
-    const newHistory: HistoryItem[] = contents.map(content => ({
-      id: content.id,
-      title: content.title,
-      status: "publicado",
-      date: format(new Date(), "dd/MM/yyyy HH:mm"),
-      channel: content.canal,
-      image: content.imageUrl || "",
-      caption: content.summary,
-      usedBrand: selectedBrand?.nome_da_marca || "",
-      usedVoice: "Padrão",
-    }));
-    setHistory(prev => [...newHistory, ...prev]);
-    setContents([]);
+  const handlePostAll = async () => {
+    if (publishingId) return;
+    for (const content of contents) {
+      await handlePost(content);
+    }
     setViewingContent(null);
-    toast.success(`${newHistory.length} conteúdo(s) publicado(s) com sucesso! 🎉`);
   };
 
-  const handleSchedule = (id: string, date: Date) => {
-    setContents(prev => prev.map(c =>
-      c.id === id ? { ...c, status: "scheduled" as const, scheduledDate: date } : c
-    ));
-    setViewingContent(prev => prev && prev.id === id ? { ...prev, status: "scheduled" as const, scheduledDate: date } : prev);
-    toast.success(`Agendado para ${format(date, "dd/MM/yyyy 'às' HH:mm")}`);
+  const handleSchedule = async (id: string, date: Date) => {
+    const content = contents.find(c => c.id === id);
+    if (!content) return;
+
+    try {
+      await supabase.from("conteudos").insert({
+        user_id: user?.email || "",
+        marca_id: selectedBrand?.id || null,
+        canal: content.canal,
+        channel_id: content.channelId,
+        titulo: content.title,
+        resumo: content.summary,
+        texto_completo: content.fullText,
+        imagem_url: content.imageUrl || null,
+        status: "agendado",
+        data_agendada: date.toISOString(),
+        marca_nome: selectedBrand?.nome_da_marca || "",
+        tom_de_voz: selectedBrand?.tom_de_voz?.join(", ") || "Padrão",
+      });
+
+      const historyItem: HistoryItem = {
+        id: content.id,
+        title: content.title,
+        status: "agendado",
+        date: format(new Date(), "dd/MM/yyyy HH:mm"),
+        channel: content.canal,
+        channelId: content.channelId,
+        image: content.imageUrl || "",
+        caption: content.summary,
+        fullText: content.fullText,
+        usedBrand: selectedBrand?.nome_da_marca || "",
+        usedVoice: selectedBrand?.tom_de_voz?.join(", ") || "Padrão",
+        scheduledDate: format(date, "dd/MM/yyyy 'às' HH:mm"),
+      };
+      setHistory(prev => [historyItem, ...prev]);
+      setContents(prev => prev.filter(c => c.id !== id));
+      setViewingContent(prev => prev && prev.id === id ? null : prev);
+      toast.success(`Agendado para ${format(date, "dd/MM/yyyy 'às' HH:mm")} 📅`);
+    } catch (err: any) {
+      console.error("Erro ao agendar:", err);
+      toast.error(`Erro ao agendar: ${err.message}`);
+    }
   };
 
   const filteredSuggestions = useMemo(() => {

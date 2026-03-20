@@ -928,9 +928,10 @@ const FabricaConteudo = () => {
               {/* ======= STICKY FOOTER ACTIONS ======= */}
               <div className="border-t border-border px-6 py-4 flex gap-3">
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => { handlePost(viewingContent); setViewingContent(null); }}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full gradient-peach text-primary-foreground font-semibold text-sm shadow-card">
-                  <Send size={15} /> Publicar
+                  onClick={async () => { await handlePost(viewingContent); setViewingContent(null); }}
+                  disabled={!!publishingId}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full gradient-peach text-primary-foreground font-semibold text-sm shadow-card disabled:opacity-50">
+                  {publishingId === viewingContent.id ? <><Loader2 size={15} className="animate-spin" /> Publicando...</> : <><Send size={15} /> Publicar</>}
                 </motion.button>
                 <ScheduleButton contentId={viewingContent.id} onSchedule={(id, date) => { handleSchedule(id, date); }} />
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}

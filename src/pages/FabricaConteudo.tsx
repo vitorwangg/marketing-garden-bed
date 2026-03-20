@@ -161,6 +161,39 @@ const FabricaConteudo = () => {
     fetchBrands();
   }, [user]);
 
+  // Fetch history from Supabase
+  useEffect(() => {
+    if (!user) return;
+    const fetchHistory = async () => {
+      const { data, error } = await supabase
+        .from("conteudos")
+        .select("*")
+        .eq("user_id", user.email)
+        .in("status", ["publicado", "agendado"])
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Erro ao buscar histórico:", error);
+        return;
+      }
+      const items: HistoryItem[] = (data || []).map((row: any) => ({
+        id: row.id,
+        title: row.titulo || "Conteúdo",
+        status: row.status,
+        date: row.data_publicada ? format(new Date(row.data_publicada), "dd/MM/yyyy HH:mm") : format(new Date(row.created_at), "dd/MM/yyyy HH:mm"),
+        channel: row.canal,
+        channelId: row.channel_id,
+        image: row.imagem_url || "",
+        caption: row.resumo || "",
+        fullText: row.texto_completo || "",
+        usedBrand: row.marca_nome || "",
+        usedVoice: row.tom_de_voz || "Padrão",
+        scheduledDate: row.data_agendada || undefined,
+      }));
+      setHistory(items);
+    };
+    fetchHistory();
+  }, [user]);
+
   const selectedBrand = brands.find(b => b.id === selectedBrandId) || null;
 
   // Resolve logo URL based on selected logo version

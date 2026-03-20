@@ -1,11 +1,12 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import {
   Sparkles, Send, Clock, CheckCircle, Flame, Search, TrendingUp,
   Instagram, Globe, Twitter, ChevronDown, Image, FileText, Trash2,
-  Eye, X, CalendarIcon, Loader2, Mail, CheckCheck, AlertTriangle
+  Eye, X, CalendarIcon, Loader2, Mail, CheckCheck, AlertTriangle,
+  Download, Upload, ToggleLeft, ToggleRight, Video
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,10 @@ interface GeneratedContent {
   createdAt: Date;
   status: "pending" | "scheduled";
   scheduledDate?: Date;
+  // Media override
+  useGeneratedMedia: boolean;
+  customMediaUrl?: string;
+  customMediaType?: "imagem" | "video";
 }
 
 interface HistoryItem {
@@ -79,16 +84,11 @@ function removeImagePromptTag(text: string): string {
   return text.replace(/\[IMAGE_PROMPT:\s*.*?\]/gis, "").trim();
 }
 
-/** Strip leftover JSON artifacts: bare keys, quotes, URLs in plain-text area */
 function cleanDisplayText(text: string): string {
   let t = text;
-  // Remove raw image URLs that leaked into caption text
   t = t.replace(/https?:\/\/\S+\.(jpg|jpeg|png|gif|webp|svg)(\?\S*)?\s*/gi, "");
-  // Remove JSON-like key patterns e.g. "Instagram": or {Instagram:
   t = t.replace(/^\s*[{"\s]*[A-Za-zÀ-ÿ_-]+["\s]*:\s*/gm, "");
-  // Remove trailing braces/brackets
   t = t.replace(/[{}[\]]+/g, "");
-  // Remove orphan quotes
   t = t.replace(/^["']+|["']+$/gm, "");
   return t.trim();
 }
@@ -124,7 +124,17 @@ function getChannelLabel(channelId: string) {
   return channels.find(c => c.id === channelId)?.label || channelId;
 }
 
+function getMediaType(url: string): "imagem" | "video" {
+  const lower = url.toLowerCase();
+  if (lower.endsWith(".mp4") || lower.includes("video")) return "video";
+  return "imagem";
+}
+
 type Marca = Tables<"marcas">;
+
+const WEBHOOK_GERAR = "https://vwg.app.n8n.cloud/webhook/gerar-conteudo";
+const WEBHOOK_PUBLICAR = "https://vwg.app.n8n.cloud/webhook/ac75015e-deda-4440-bb1f-c434c902def1";
+const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50MB
 
 const FabricaConteudo = () => {
   const { user } = useAuth();
@@ -143,6 +153,7 @@ const FabricaConteudo = () => {
   const [viewingContent, setViewingContent] = useState<GeneratedContent | null>(null);
   const [brands, setBrands] = useState<Marca[]>([]);
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   // Fetch brands from Supabase
   useEffect(() => {
@@ -196,7 +207,6 @@ const FabricaConteudo = () => {
 
   const selectedBrand = brands.find(b => b.id === selectedBrandId) || null;
 
-  // Resolve logo URL based on selected logo version
   const getSelectedLogoUrl = (): string | null => {
     if (!selectedBrand) return null;
     switch (selectedLogo) {
@@ -209,6 +219,63 @@ const FabricaConteudo = () => {
 
   const toggleChannel = (id: string) => {
     setSelectedChannels(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
+  };
+
+  /** Resolve the final media URL and type for a content card */
+  const resolveMedia = (content: GeneratedContent): { url: string; tipo: "imagem" | "video" } => {
+    if (!content.useGeneratedMedia && content.customMediaUrl) {
+      return { url: content.customMediaUrl, tipo: content.customMediaType || "imagem" };
+    }
+    const url = content.imageUrl || "";
+    return { url, tipo: getMediaType(url) };
+  };
+
+  /** Upload custom media file to Supabase Storage */
+  const handleMediaUpload = async (contentId: string, file: File) => {
+    if (file.size > MAX_UPLOAD_SIZE) {
+      toast.error("Arquivo excede 50MB. Escolha um arquivo menor.");
+      return;
+    }
+
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const isVideo = file.type.startsWith("video/") || ext === "mp4";
+    const accepted = ["jpg", "jpeg", "png", "mp4"];
+    if (!accepted.includes(ext)) {
+      toast.error("Formato não suportado. Use JPG, PNG ou MP4.");
+      return;
+    }
+
+    setUploadingId(contentId);
+    const filePath = `conteudo-media/${contentId}-${Date.now()}.${ext}`;
+
+    try {
+      const { error } = await supabase.storage.from("brand_logos").upload(filePath, file, { upsert: true });
+      if (error) throw error;
+
+      const { data: publicData } = supabase.storage.from("brand_logos").getPublicUrl(filePath);
+      const publicUrl = publicData.publicUrl;
+      const tipo: "imagem" | "video" = isVideo ? "video" : "imagem";
+
+      setContents(prev => prev.map(c =>
+        c.id === contentId ? { ...c, useGeneratedMedia: false, customMediaUrl: publicUrl, customMediaType: tipo } : c
+      ));
+      // Also update viewingContent if open
+      setViewingContent(prev => prev && prev.id === contentId ? { ...prev, useGeneratedMedia: false, customMediaUrl: publicUrl, customMediaType: tipo } : prev);
+
+      toast.success(`${isVideo ? "Vídeo" : "Imagem"} enviado com sucesso!`);
+    } catch (err: any) {
+      console.error("Erro no upload:", err);
+      toast.error(`Erro ao fazer upload: ${err.message}`);
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
+  const toggleUseGeneratedMedia = (contentId: string) => {
+    setContents(prev => prev.map(c =>
+      c.id === contentId ? { ...c, useGeneratedMedia: !c.useGeneratedMedia } : c
+    ));
+    setViewingContent(prev => prev && prev.id === contentId ? { ...prev, useGeneratedMedia: !prev.useGeneratedMedia } : prev);
   };
 
   const handleGenerate = async () => {
@@ -253,7 +320,7 @@ const FabricaConteudo = () => {
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     try {
-      const res = await fetch("https://vwg.app.n8n.cloud/webhook-test/gerar-conteudo", {
+      const res = await fetch(WEBHOOK_GERAR, {
         method: "POST",
         mode: "cors",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
@@ -322,6 +389,7 @@ const FabricaConteudo = () => {
             imageUrl,
             createdAt: new Date(),
             status: "pending" as const,
+            useGeneratedMedia: true,
           });
         });
       } else {
@@ -341,6 +409,7 @@ const FabricaConteudo = () => {
             imageUrl,
             createdAt: new Date(),
             status: "pending" as const,
+            useGeneratedMedia: true,
           });
         });
       }
@@ -394,15 +463,19 @@ const FabricaConteudo = () => {
     setPublishingId(content.id);
 
     try {
+      const media = resolveMedia(content);
       const payload = {
-        imagem: content.imageUrl || "",
+        midia: {
+          url: media.url,
+          tipo: media.tipo,
+        },
         texto: content.fullText || "",
         canal: content.canal || "",
         agendar: false,
       };
       console.log("Publicando no n8n:", payload);
 
-      const res = await fetch("https://vwg.app.n8n.cloud/webhook/ac75015e-deda-4440-bb1f-c434c902def1", {
+      const res = await fetch(WEBHOOK_PUBLICAR, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -410,7 +483,6 @@ const FabricaConteudo = () => {
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      // Save to Supabase
       await supabase.from("conteudos").insert({
         user_id: user?.email || "",
         marca_id: selectedBrand?.id || null,
@@ -419,7 +491,7 @@ const FabricaConteudo = () => {
         titulo: content.title,
         resumo: content.summary,
         texto_completo: content.fullText,
-        imagem_url: content.imageUrl || null,
+        imagem_url: media.url || null,
         status: "publicado",
         data_publicada: new Date().toISOString(),
         marca_nome: selectedBrand?.nome_da_marca || "",
@@ -433,7 +505,7 @@ const FabricaConteudo = () => {
         date: format(new Date(), "dd/MM/yyyy HH:mm"),
         channel: content.canal,
         channelId: content.channelId,
-        image: content.imageUrl || "",
+        image: media.url || "",
         caption: content.summary,
         fullText: content.fullText,
         usedBrand: selectedBrand?.nome_da_marca || "",
@@ -463,6 +535,7 @@ const FabricaConteudo = () => {
     if (!content) return;
 
     try {
+      const media = resolveMedia(content);
       await supabase.from("conteudos").insert({
         user_id: user?.email || "",
         marca_id: selectedBrand?.id || null,
@@ -471,7 +544,7 @@ const FabricaConteudo = () => {
         titulo: content.title,
         resumo: content.summary,
         texto_completo: content.fullText,
-        imagem_url: content.imageUrl || null,
+        imagem_url: media.url || null,
         status: "agendado",
         data_agendada: date.toISOString(),
         marca_nome: selectedBrand?.nome_da_marca || "",
@@ -485,7 +558,7 @@ const FabricaConteudo = () => {
         date: format(new Date(), "dd/MM/yyyy HH:mm"),
         channel: content.canal,
         channelId: content.channelId,
-        image: content.imageUrl || "",
+        image: media.url || "",
         caption: content.summary,
         fullText: content.fullText,
         usedBrand: selectedBrand?.nome_da_marca || "",
@@ -671,6 +744,9 @@ const FabricaConteudo = () => {
                 <AnimatePresence mode="popLayout">
                   {filteredContents.map((content) => {
                     const ChannelIcon = getChannelIcon(content.channelId);
+                    const media = resolveMedia(content);
+                    const displayMediaUrl = content.useGeneratedMedia ? content.imageUrl : content.customMediaUrl;
+                    const isVideoMedia = media.tipo === "video";
                     return (
                       <motion.div
                         key={content.id}
@@ -680,6 +756,14 @@ const FabricaConteudo = () => {
                         exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.3 } }}
                         className="bento-card p-5"
                       >
+                        {/* Media controls — top-left, discrete */}
+                        <MediaControls
+                          content={content}
+                          onToggle={() => toggleUseGeneratedMedia(content.id)}
+                          onUpload={(file) => handleMediaUpload(content.id, file)}
+                          uploading={uploadingId === content.id}
+                        />
+
                         {/* Header */}
                         <div className="flex items-center gap-2 mb-2">
                           <ChannelIcon size={14} className="text-primary" />
@@ -698,10 +782,14 @@ const FabricaConteudo = () => {
                           </div>
                         )}
 
-                        {/* Image preview */}
-                        {content.imageUrl && (
+                        {/* Media preview */}
+                        {displayMediaUrl && (
                           <div className="mb-3 rounded-xl overflow-hidden bg-muted" style={{ aspectRatio: content.channelId === "blog" ? "16/9" : "1/1", maxHeight: "200px" }}>
-                            <img src={content.imageUrl} alt="" className="w-full h-full object-cover" />
+                            {isVideoMedia && !content.useGeneratedMedia ? (
+                              <video src={displayMediaUrl} controls className="w-full h-full object-cover" />
+                            ) : (
+                              <img src={displayMediaUrl} alt="" className="w-full h-full object-cover" />
+                            )}
                           </div>
                         )}
 
@@ -729,7 +817,7 @@ const FabricaConteudo = () => {
                           <Eye size={12} /> Ver Completo
                         </button>
 
-                        {/* Action Buttons - prominent */}
+                        {/* Action Buttons */}
                         <div className="flex gap-2">
                           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                             onClick={() => handlePost(content)}
@@ -806,7 +894,11 @@ const FabricaConteudo = () => {
                         <div className="bg-muted rounded-2xl p-4 space-y-3">
                           {h.image && (
                             <div className="rounded-xl overflow-hidden bg-card" style={{ maxHeight: "200px" }}>
-                              <img src={h.image} alt="" className="w-full h-full object-cover" />
+                              {h.image.toLowerCase().endsWith(".mp4") ? (
+                                <video src={h.image} controls className="w-full h-full object-cover" />
+                              ) : (
+                                <img src={h.image} alt="" className="w-full h-full object-cover" />
+                              )}
                             </div>
                           )}
                           <div>
@@ -862,22 +954,18 @@ const FabricaConteudo = () => {
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-3xl border border-border bg-card/80 backdrop-blur-xl shadow-hover"
             >
-              {/* Close button */}
               <button onClick={() => setViewingContent(null)}
                 className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
                 <X size={16} className="text-foreground" />
               </button>
 
-              {/* Scrollable content area */}
               <div className="flex-1 overflow-y-auto p-6 sm:p-8 pb-4">
-                {/* Channel header */}
                 <div className="flex items-center gap-2 mb-4">
                   {(() => { const Icon = getChannelIcon(viewingContent.channelId); return <Icon size={16} className="text-primary" />; })()}
                   <span className="text-sm font-semibold text-primary">{viewingContent.canal}</span>
                   <span className="text-xs text-muted-foreground">· {format(viewingContent.createdAt, "dd/MM/yyyy HH:mm")}</span>
                 </div>
 
-                {/* Status badge in modal */}
                 {viewingContent.status === "scheduled" && viewingContent.scheduledDate && (
                   <div className="mb-4">
                     <span className="text-xs bg-accent text-accent-foreground px-3 py-1 rounded-full font-semibold">
@@ -886,11 +974,20 @@ const FabricaConteudo = () => {
                   </div>
                 )}
 
+                {/* Media controls in modal */}
+                <div className="mb-4">
+                  <MediaControls
+                    content={viewingContent}
+                    onToggle={() => toggleUseGeneratedMedia(viewingContent.id)}
+                    onUpload={(file) => handleMediaUpload(viewingContent.id, file)}
+                    uploading={uploadingId === viewingContent.id}
+                  />
+                </div>
+
                 {/* ======= BLOG LAYOUT ======= */}
                 {viewingContent.channelId === "blog" && (
                   <div className="space-y-4">
-                    {/* Banner 16:9 shimmer */}
-                    <ShimmerImagePlaceholder aspectRatio="16/9" imageUrl={viewingContent.imageUrl} />
+                    <ShimmerImagePlaceholder aspectRatio="16/9" imageUrl={viewingContent.useGeneratedMedia ? viewingContent.imageUrl : viewingContent.customMediaUrl} isVideo={!viewingContent.useGeneratedMedia && viewingContent.customMediaType === "video"} />
                     <div
                       className="prose prose-sm max-w-none text-foreground [&_h1]:text-2xl [&_h1]:font-extrabold [&_h1]:text-primary [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mb-2 [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-foreground [&_b]:font-bold [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
                       dangerouslySetInnerHTML={{ __html: viewingContent.fullText }}
@@ -898,14 +995,12 @@ const FabricaConteudo = () => {
                   </div>
                 )}
 
-                {/* ======= SOCIAL LAYOUT (Instagram / TikTok / Facebook) ======= */}
+                {/* ======= SOCIAL LAYOUT ======= */}
                 {(viewingContent.channelId === "instagram" || viewingContent.channelId === "tiktok" || viewingContent.channelId === "facebook") && (
                   <div className="space-y-4">
-                    {/* Square 1:1 image placeholder */}
                     <div className="max-w-sm mx-auto">
-                      <ShimmerImagePlaceholder aspectRatio="1/1" imageUrl={viewingContent.imageUrl} />
+                      <ShimmerImagePlaceholder aspectRatio="1/1" imageUrl={viewingContent.useGeneratedMedia ? viewingContent.imageUrl : viewingContent.customMediaUrl} isVideo={!viewingContent.useGeneratedMedia && viewingContent.customMediaType === "video"} />
                     </div>
-                    {/* Caption */}
                     <div className="bg-muted rounded-2xl p-4">
                       <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                         {cleanDisplayText(viewingContent.fullText)}
@@ -918,20 +1013,17 @@ const FabricaConteudo = () => {
                 {viewingContent.channelId === "email" && (
                   <div className="space-y-4">
                     <div className="border border-border rounded-2xl overflow-hidden bg-card">
-                      {/* Email header bar */}
                       <div className="bg-muted px-5 py-3 border-b border-border flex items-center gap-2">
                         <Mail size={14} className="text-muted-foreground" />
                         <span className="text-xs font-semibold text-muted-foreground">Assunto:</span>
                         <span className="text-sm font-bold text-foreground">{viewingContent.title}</span>
                       </div>
-                      {/* Email body */}
                       <div className="p-5 space-y-4">
-                        <ShimmerImagePlaceholder aspectRatio="16/9" imageUrl={viewingContent.imageUrl} />
+                        <ShimmerImagePlaceholder aspectRatio="16/9" imageUrl={viewingContent.useGeneratedMedia ? viewingContent.imageUrl : viewingContent.customMediaUrl} isVideo={!viewingContent.useGeneratedMedia && viewingContent.customMediaType === "video"} />
                         <div
                           className="text-sm text-foreground leading-relaxed [&_h1]:text-primary [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_p]:mb-3 [&_b]:font-bold [&_strong]:font-bold"
                           dangerouslySetInnerHTML={{ __html: viewingContent.fullText }}
                         />
-                        {/* CTA Button */}
                         <div className="text-center pt-2">
                           <button className="gradient-peach text-primary-foreground px-8 py-3 rounded-full font-semibold text-sm shadow-card hover:shadow-hover transition-all">
                             Saiba Mais →
@@ -966,9 +1058,89 @@ const FabricaConteudo = () => {
   );
 };
 
+/* ============ MEDIA CONTROLS (toggle, upload, download) ============ */
+function MediaControls({
+  content,
+  onToggle,
+  onUpload,
+  uploading,
+}: {
+  content: GeneratedContent;
+  onToggle: () => void;
+  onUpload: (file: File) => void;
+  uploading: boolean;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const currentMediaUrl = content.useGeneratedMedia ? content.imageUrl : content.customMediaUrl;
+
+  return (
+    <div className="flex items-center gap-2 mb-2 flex-wrap">
+      {/* Toggle */}
+      <button
+        onClick={onToggle}
+        className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+        title={content.useGeneratedMedia ? "Usando mídia gerada pela IA" : "Usando mídia personalizada"}
+      >
+        {content.useGeneratedMedia ? (
+          <ToggleRight size={16} className="text-primary" />
+        ) : (
+          <ToggleLeft size={16} className="text-muted-foreground" />
+        )}
+        <span>{content.useGeneratedMedia ? "Mídia IA" : "Mídia custom"}</span>
+      </button>
+
+      {/* Upload button — visible when toggle is OFF */}
+      {!content.useGeneratedMedia && (
+        <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.mp4"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onUpload(file);
+              e.target.value = "";
+            }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="flex items-center gap-1 text-[10px] font-medium text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+          >
+            {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+            <span>{uploading ? "Enviando..." : "Upload"}</span>
+          </button>
+        </>
+      )}
+
+      {/* Download button */}
+      {currentMediaUrl && (
+        <a
+          href={currentMediaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          download
+          className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Download size={12} />
+          <span>Download</span>
+        </a>
+      )}
+    </div>
+  );
+}
+
 /* ============ SHIMMER IMAGE PLACEHOLDER ============ */
-function ShimmerImagePlaceholder({ aspectRatio, imageUrl }: { aspectRatio: string; imageUrl?: string }) {
+function ShimmerImagePlaceholder({ aspectRatio, imageUrl, isVideo }: { aspectRatio: string; imageUrl?: string; isVideo?: boolean }) {
   if (imageUrl) {
+    if (isVideo) {
+      return (
+        <div className="relative w-full rounded-2xl overflow-hidden bg-muted" style={{ aspectRatio }}>
+          <video src={imageUrl} controls className="w-full h-full object-cover" />
+        </div>
+      );
+    }
     return (
       <div className="relative w-full rounded-2xl overflow-hidden bg-muted" style={{ aspectRatio }}>
         <img src={imageUrl} alt="Conteúdo gerado" className="w-full h-full object-cover" />
@@ -1029,7 +1201,6 @@ function ScheduleButton({ contentId, onSchedule }: { contentId: string; onSchedu
             initialFocus
             className={cn("p-3 pointer-events-auto")}
           />
-          {/* Time picker */}
           <div className="flex items-center justify-center gap-2 px-3">
             <Clock size={14} className="text-muted-foreground" />
             <select
@@ -1052,7 +1223,6 @@ function ScheduleButton({ contentId, onSchedule }: { contentId: string; onSchedu
               ))}
             </select>
           </div>
-          {/* Confirm button */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

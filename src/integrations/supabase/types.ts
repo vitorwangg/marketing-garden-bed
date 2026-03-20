@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      conteudos: {
+        Row: {
+          canal: string
+          channel_id: string
+          created_at: string
+          data_agendada: string | null
+          data_publicada: string | null
+          id: string
+          imagem_url: string | null
+          marca_id: string | null
+          marca_nome: string | null
+          resumo: string | null
+          status: string
+          texto_completo: string | null
+          titulo: string | null
+          tom_de_voz: string | null
+          user_id: string | null
+        }
+        Insert: {
+          canal: string
+          channel_id: string
+          created_at?: string
+          data_agendada?: string | null
+          data_publicada?: string | null
+          id?: string
+          imagem_url?: string | null
+          marca_id?: string | null
+          marca_nome?: string | null
+          resumo?: string | null
+          status?: string
+          texto_completo?: string | null
+          titulo?: string | null
+          tom_de_voz?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          canal?: string
+          channel_id?: string
+          created_at?: string
+          data_agendada?: string | null
+          data_publicada?: string | null
+          id?: string
+          imagem_url?: string | null
+          marca_id?: string | null
+          marca_nome?: string | null
+          resumo?: string | null
+          status?: string
+          texto_completo?: string | null
+          titulo?: string | null
+          tom_de_voz?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudos_marca_id_fkey"
+            columns: ["marca_id"]
+            isOneToOne: false
+            referencedRelation: "marcas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marcas: {
         Row: {
           cor_primaria: string | null

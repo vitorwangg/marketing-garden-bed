@@ -779,10 +779,22 @@ const FabricaConteudo = () => {
                   <button onClick={() => setExpandedHistory(expandedHistory === idx ? null : idx)}
                     className="w-full p-5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <CheckCircle size={20} className="text-accent-foreground" />
+                      {h.status === "agendado" ? <CalendarIcon size={20} className="text-primary" /> : <CheckCircle size={20} className="text-accent-foreground" />}
                       <div className="text-left">
                         <span className="font-medium text-foreground block">{h.title}</span>
-                        <span className="text-xs text-muted-foreground">{h.channel} · {h.date}</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs text-muted-foreground">{h.channel} · {h.date}</span>
+                          {h.status === "agendado" && h.scheduledDate && (
+                            <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
+                              📅 {h.scheduledDate}
+                            </span>
+                          )}
+                          {h.status === "publicado" && (
+                            <span className="text-[10px] bg-accent text-accent-foreground px-2 py-0.5 rounded-full font-semibold">
+                              ✅ Publicado
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <ChevronDown size={18} className={`text-muted-foreground transition-transform ${expandedHistory === idx ? "rotate-180" : ""}`} />
@@ -791,13 +803,18 @@ const FabricaConteudo = () => {
                     {expandedHistory === idx && (
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-5 pb-5">
                         <div className="bg-muted rounded-2xl p-4 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Image size={14} className="text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">Formato: {h.image}</span>
-                          </div>
+                          {h.image && (
+                            <div className="rounded-xl overflow-hidden bg-card" style={{ maxHeight: "200px" }}>
+                              <img src={h.image} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          )}
                           <div>
                             <label className="text-[10px] font-semibold text-muted-foreground uppercase">Legenda</label>
-                            <p className="text-sm text-foreground mt-1">{h.caption}</p>
+                            {h.channelId === "blog" || h.channelId === "email" ? (
+                              <div className="text-sm text-foreground mt-1 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: h.fullText }} />
+                            ) : (
+                              <p className="text-sm text-foreground mt-1 whitespace-pre-wrap">{cleanDisplayText(h.fullText || h.caption)}</p>
+                            )}
                           </div>
                           <div className="flex gap-4">
                             <div>

@@ -61,10 +61,13 @@ interface HistoryItem {
   status: string;
   date: string;
   channel: string;
+  channelId: string;
   image: string;
   caption: string;
+  fullText: string;
   usedBrand: string;
   usedVoice: string;
+  scheduledDate?: string;
 }
 
 function extractImagePrompt(text: string): string | undefined {
@@ -139,6 +142,7 @@ const FabricaConteudo = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingContent, setViewingContent] = useState<GeneratedContent | null>(null);
   const [brands, setBrands] = useState<Marca[]>([]);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
 
   // Fetch brands from Supabase
   useEffect(() => {
@@ -155,6 +159,39 @@ const FabricaConteudo = () => {
       setBrands(data || []);
     };
     fetchBrands();
+  }, [user]);
+
+  // Fetch history from Supabase
+  useEffect(() => {
+    if (!user) return;
+    const fetchHistory = async () => {
+      const { data, error } = await supabase
+        .from("conteudos")
+        .select("*")
+        .eq("user_id", user.email)
+        .in("status", ["publicado", "agendado"])
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Erro ao buscar histórico:", error);
+        return;
+      }
+      const items: HistoryItem[] = (data || []).map((row: any) => ({
+        id: row.id,
+        title: row.titulo || "Conteúdo",
+        status: row.status,
+        date: row.data_publicada ? format(new Date(row.data_publicada), "dd/MM/yyyy HH:mm") : format(new Date(row.created_at), "dd/MM/yyyy HH:mm"),
+        channel: row.canal,
+        channelId: row.channel_id,
+        image: row.imagem_url || "",
+        caption: row.resumo || "",
+        fullText: row.texto_completo || "",
+        usedBrand: row.marca_nome || "",
+        usedVoice: row.tom_de_voz || "Padrão",
+        scheduledDate: row.data_agendada || undefined,
+      }));
+      setHistory(items);
+    };
+    fetchHistory();
   }, [user]);
 
   const selectedBrand = brands.find(b => b.id === selectedBrandId) || null;
@@ -352,48 +389,117 @@ const FabricaConteudo = () => {
     toast("Todos os conteúdos foram removidos");
   };
 
-  const handlePost = (content: GeneratedContent) => {
-    // Move to history
-    const historyItem: HistoryItem = {
-      id: content.id,
-      title: content.title,
-      status: "publicado",
-      date: format(new Date(), "dd/MM/yyyy HH:mm"),
-      channel: content.canal,
-      image: content.imageUrl || "",
-      caption: content.summary,
-      usedBrand: selectedBrand?.nome_da_marca || "",
-      usedVoice: "Padrão",
-    };
-    setHistory(prev => [historyItem, ...prev]);
-    setContents(prev => prev.filter(c => c.id !== content.id));
-    toast.success(`Publicado em ${content.canal}! (simulado)`);
+  const handlePost = async (content: GeneratedContent) => {
+    if (publishingId) return;
+    setPublishingId(content.id);
+
+    try {
+      const payload = {
+        imagem: content.imageUrl || "",
+        texto: content.fullText || "",
+        canal: content.canal || "",
+        agendar: false,
+      };
+      console.log("Publicando no n8n:", payload);
+
+      const res = await fetch("https://vwg.app.n8n.cloud/webhook/ac75015e-deda-4440-bb1f-c434c902def1", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      // Save to Supabase
+      await supabase.from("conteudos").insert({
+        user_id: user?.email || "",
+        marca_id: selectedBrand?.id || null,
+        canal: content.canal,
+        channel_id: content.channelId,
+        titulo: content.title,
+        resumo: content.summary,
+        texto_completo: content.fullText,
+        imagem_url: content.imageUrl || null,
+        status: "publicado",
+        data_publicada: new Date().toISOString(),
+        marca_nome: selectedBrand?.nome_da_marca || "",
+        tom_de_voz: selectedBrand?.tom_de_voz?.join(", ") || "Padrão",
+      });
+
+      const historyItem: HistoryItem = {
+        id: content.id,
+        title: content.title,
+        status: "publicado",
+        date: format(new Date(), "dd/MM/yyyy HH:mm"),
+        channel: content.canal,
+        channelId: content.channelId,
+        image: content.imageUrl || "",
+        caption: content.summary,
+        fullText: content.fullText,
+        usedBrand: selectedBrand?.nome_da_marca || "",
+        usedVoice: selectedBrand?.tom_de_voz?.join(", ") || "Padrão",
+      };
+      setHistory(prev => [historyItem, ...prev]);
+      setContents(prev => prev.filter(c => c.id !== content.id));
+      toast.success(`Publicado em ${content.canal}! ✅`);
+    } catch (err: any) {
+      console.error("Erro ao publicar:", err);
+      toast.error(`Erro ao publicar: ${err.message}`);
+    } finally {
+      setPublishingId(null);
+    }
   };
 
-  const handlePostAll = () => {
-    const newHistory: HistoryItem[] = contents.map(content => ({
-      id: content.id,
-      title: content.title,
-      status: "publicado",
-      date: format(new Date(), "dd/MM/yyyy HH:mm"),
-      channel: content.canal,
-      image: content.imageUrl || "",
-      caption: content.summary,
-      usedBrand: selectedBrand?.nome_da_marca || "",
-      usedVoice: "Padrão",
-    }));
-    setHistory(prev => [...newHistory, ...prev]);
-    setContents([]);
+  const handlePostAll = async () => {
+    if (publishingId) return;
+    for (const content of contents) {
+      await handlePost(content);
+    }
     setViewingContent(null);
-    toast.success(`${newHistory.length} conteúdo(s) publicado(s) com sucesso! 🎉`);
   };
 
-  const handleSchedule = (id: string, date: Date) => {
-    setContents(prev => prev.map(c =>
-      c.id === id ? { ...c, status: "scheduled" as const, scheduledDate: date } : c
-    ));
-    setViewingContent(prev => prev && prev.id === id ? { ...prev, status: "scheduled" as const, scheduledDate: date } : prev);
-    toast.success(`Agendado para ${format(date, "dd/MM/yyyy 'às' HH:mm")}`);
+  const handleSchedule = async (id: string, date: Date) => {
+    const content = contents.find(c => c.id === id);
+    if (!content) return;
+
+    try {
+      await supabase.from("conteudos").insert({
+        user_id: user?.email || "",
+        marca_id: selectedBrand?.id || null,
+        canal: content.canal,
+        channel_id: content.channelId,
+        titulo: content.title,
+        resumo: content.summary,
+        texto_completo: content.fullText,
+        imagem_url: content.imageUrl || null,
+        status: "agendado",
+        data_agendada: date.toISOString(),
+        marca_nome: selectedBrand?.nome_da_marca || "",
+        tom_de_voz: selectedBrand?.tom_de_voz?.join(", ") || "Padrão",
+      });
+
+      const historyItem: HistoryItem = {
+        id: content.id,
+        title: content.title,
+        status: "agendado",
+        date: format(new Date(), "dd/MM/yyyy HH:mm"),
+        channel: content.canal,
+        channelId: content.channelId,
+        image: content.imageUrl || "",
+        caption: content.summary,
+        fullText: content.fullText,
+        usedBrand: selectedBrand?.nome_da_marca || "",
+        usedVoice: selectedBrand?.tom_de_voz?.join(", ") || "Padrão",
+        scheduledDate: format(date, "dd/MM/yyyy 'às' HH:mm"),
+      };
+      setHistory(prev => [historyItem, ...prev]);
+      setContents(prev => prev.filter(c => c.id !== id));
+      setViewingContent(prev => prev && prev.id === id ? null : prev);
+      toast.success(`Agendado para ${format(date, "dd/MM/yyyy 'às' HH:mm")} 📅`);
+    } catch (err: any) {
+      console.error("Erro ao agendar:", err);
+      toast.error(`Erro ao agendar: ${err.message}`);
+    }
   };
 
   const filteredSuggestions = useMemo(() => {
@@ -551,8 +657,9 @@ const FabricaConteudo = () => {
                 <div className="flex gap-3 mb-4">
                   <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                     onClick={handlePostAll}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full gradient-peach text-primary-foreground text-xs font-semibold shadow-card">
-                    <CheckCheck size={15} /> Publicar Todos ({contents.length})
+                    disabled={!!publishingId}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full gradient-peach text-primary-foreground text-xs font-semibold shadow-card disabled:opacity-50">
+                    {publishingId ? <><Loader2 size={15} className="animate-spin" /> Publicando...</> : <><CheckCheck size={15} /> Publicar Todos ({contents.length})</>}
                   </motion.button>
                   <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                     onClick={handleDeleteAll}
@@ -626,8 +733,9 @@ const FabricaConteudo = () => {
                         <div className="flex gap-2">
                           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                             onClick={() => handlePost(content)}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full gradient-peach text-primary-foreground text-xs font-semibold shadow-card">
-                            <Send size={13} /> Publicar
+                            disabled={!!publishingId}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full gradient-peach text-primary-foreground text-xs font-semibold shadow-card disabled:opacity-50">
+                            {publishingId === content.id ? <><Loader2 size={13} className="animate-spin" /> Publicando...</> : <><Send size={13} /> Publicar</>}
                           </motion.button>
                           <ScheduleButton contentId={content.id} onSchedule={handleSchedule} />
                           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
@@ -672,10 +780,22 @@ const FabricaConteudo = () => {
                   <button onClick={() => setExpandedHistory(expandedHistory === idx ? null : idx)}
                     className="w-full p-5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <CheckCircle size={20} className="text-accent-foreground" />
+                      {h.status === "agendado" ? <CalendarIcon size={20} className="text-primary" /> : <CheckCircle size={20} className="text-accent-foreground" />}
                       <div className="text-left">
                         <span className="font-medium text-foreground block">{h.title}</span>
-                        <span className="text-xs text-muted-foreground">{h.channel} · {h.date}</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs text-muted-foreground">{h.channel} · {h.date}</span>
+                          {h.status === "agendado" && h.scheduledDate && (
+                            <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
+                              📅 {h.scheduledDate}
+                            </span>
+                          )}
+                          {h.status === "publicado" && (
+                            <span className="text-[10px] bg-accent text-accent-foreground px-2 py-0.5 rounded-full font-semibold">
+                              ✅ Publicado
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <ChevronDown size={18} className={`text-muted-foreground transition-transform ${expandedHistory === idx ? "rotate-180" : ""}`} />
@@ -684,13 +804,18 @@ const FabricaConteudo = () => {
                     {expandedHistory === idx && (
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-5 pb-5">
                         <div className="bg-muted rounded-2xl p-4 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Image size={14} className="text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">Formato: {h.image}</span>
-                          </div>
+                          {h.image && (
+                            <div className="rounded-xl overflow-hidden bg-card" style={{ maxHeight: "200px" }}>
+                              <img src={h.image} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          )}
                           <div>
                             <label className="text-[10px] font-semibold text-muted-foreground uppercase">Legenda</label>
-                            <p className="text-sm text-foreground mt-1">{h.caption}</p>
+                            {h.channelId === "blog" || h.channelId === "email" ? (
+                              <div className="text-sm text-foreground mt-1 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: h.fullText }} />
+                            ) : (
+                              <p className="text-sm text-foreground mt-1 whitespace-pre-wrap">{cleanDisplayText(h.fullText || h.caption)}</p>
+                            )}
                           </div>
                           <div className="flex gap-4">
                             <div>
@@ -821,9 +946,10 @@ const FabricaConteudo = () => {
               {/* ======= STICKY FOOTER ACTIONS ======= */}
               <div className="border-t border-border px-6 py-4 flex gap-3">
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => { handlePost(viewingContent); setViewingContent(null); }}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full gradient-peach text-primary-foreground font-semibold text-sm shadow-card">
-                  <Send size={15} /> Publicar
+                  onClick={async () => { await handlePost(viewingContent); setViewingContent(null); }}
+                  disabled={!!publishingId}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full gradient-peach text-primary-foreground font-semibold text-sm shadow-card disabled:opacity-50">
+                  {publishingId === viewingContent.id ? <><Loader2 size={15} className="animate-spin" /> Publicando...</> : <><Send size={15} /> Publicar</>}
                 </motion.button>
                 <ScheduleButton contentId={viewingContent.id} onSchedule={(id, date) => { handleSchedule(id, date); }} />
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}

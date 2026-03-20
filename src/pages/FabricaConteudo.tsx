@@ -657,8 +657,9 @@ const FabricaConteudo = () => {
                 <div className="flex gap-3 mb-4">
                   <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                     onClick={handlePostAll}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full gradient-peach text-primary-foreground text-xs font-semibold shadow-card">
-                    <CheckCheck size={15} /> Publicar Todos ({contents.length})
+                    disabled={!!publishingId}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full gradient-peach text-primary-foreground text-xs font-semibold shadow-card disabled:opacity-50">
+                    {publishingId ? <><Loader2 size={15} className="animate-spin" /> Publicando...</> : <><CheckCheck size={15} /> Publicar Todos ({contents.length})</>}
                   </motion.button>
                   <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                     onClick={handleDeleteAll}

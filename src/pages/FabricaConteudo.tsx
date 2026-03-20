@@ -142,6 +142,7 @@ const FabricaConteudo = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewingContent, setViewingContent] = useState<GeneratedContent | null>(null);
   const [brands, setBrands] = useState<Marca[]>([]);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
 
   // Fetch brands from Supabase
   useEffect(() => {

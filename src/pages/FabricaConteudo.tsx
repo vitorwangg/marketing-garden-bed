@@ -249,10 +249,10 @@ const FabricaConteudo = () => {
     const filePath = `conteudo-media/${contentId}-${Date.now()}.${ext}`;
 
     try {
-      const { error } = await supabase.storage.from("brand_logos").upload(filePath, file, { upsert: true });
+      const { error } = await supabase.storage.from("conteudos_midia").upload(filePath, file, { upsert: true });
       if (error) throw error;
 
-      const { data: publicData } = supabase.storage.from("brand_logos").getPublicUrl(filePath);
+      const { data: publicData } = supabase.storage.from("conteudos_midia").getPublicUrl(filePath);
       const publicUrl = publicData.publicUrl;
       const tipo: "imagem" | "video" = isVideo ? "video" : "imagem";
 

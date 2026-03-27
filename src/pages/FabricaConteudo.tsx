@@ -132,8 +132,8 @@ function getMediaType(url: string): "imagem" | "video" {
 
 type Marca = Tables<"marcas">;
 
-const WEBHOOK_GERAR = "https://vwg.app.n8n.cloud/webhook/gerar-conteudo";
-const WEBHOOK_PUBLICAR = "https://vwg.app.n8n.cloud/webhook/ac75015e-deda-4440-bb1f-c434c902def1";
+const WEBHOOK_GERAR = "https://gtflow.app.n8n.cloud/webhook/gerar-conteudo";
+const WEBHOOK_PUBLICAR = "https://gtflow.app.n8n.cloud/webhook/ac75015e-deda-4440-bb1f-c434c902def1";
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50MB
 
 const FabricaConteudo = () => {

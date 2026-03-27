@@ -154,6 +154,7 @@ const FabricaConteudo = () => {
   const [brands, setBrands] = useState<Marca[]>([]);
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [temaVisual, setTemaVisual] = useState("");
 
   // Fetch brands from Supabase
   useEffect(() => {
@@ -312,6 +313,7 @@ const FabricaConteudo = () => {
         safe(selectedBrand.publico_genero),
         safeArr(selectedBrand.publico_faixa_etaria),
       ].filter(Boolean).join(" — ") || "",
+      tema_visual: temaVisual.trim(),
     };
 
     console.log("Dados enviados ao n8n:", payload);
@@ -362,6 +364,8 @@ const FabricaConteudo = () => {
 
       const extractImage = (val: any, text: string): string | undefined => {
         if (val && typeof val === "object") {
+          // Check midia.url first (Hugging Face response)
+          if (val.midia && val.midia.url) return val.midia.url;
           const img = val.imagem || val.image || val.imageUrl || val.image_url;
           if (img) return img;
         }
@@ -444,6 +448,7 @@ const FabricaConteudo = () => {
     if (!prompt.trim()) return;
     handleGenerate();
     setPrompt("");
+    setTemaVisual("");
     setShowSuggestions(false);
   };
 
@@ -464,6 +469,15 @@ const FabricaConteudo = () => {
 
     try {
       const media = resolveMedia(content);
+      // Determine plataforma
+      const canalLower = (content.canal || "").toLowerCase();
+      let plataforma = canalLower;
+      // If publishing all and both instagram+facebook are present, use "ambos"
+      const allCanals = contents.map(c => c.canal.toLowerCase());
+      if (allCanals.includes("instagram") && allCanals.includes("facebook") && (canalLower === "instagram" || canalLower === "facebook")) {
+        plataforma = "ambos";
+      }
+
       const payload = {
         midia: {
           url: media.url,
@@ -471,6 +485,7 @@ const FabricaConteudo = () => {
         },
         texto: content.fullText || "",
         canal: content.canal || "",
+        plataforma,
         agendar: false,
       };
       console.log("Publicando no n8n:", payload);
@@ -632,6 +647,19 @@ const FabricaConteudo = () => {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Tema Visual field */}
+              <div className="mb-4">
+                <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Tema Visual (opcional)</label>
+                <input
+                  value={temaVisual}
+                  onChange={(e) => setTemaVisual(e.target.value)}
+                  placeholder="Ex: café, manhã, relaxamento"
+                  disabled={!selectedBrandId}
+                  className="w-full bg-muted rounded-full px-5 py-2.5 text-sm text-foreground focus-glow disabled:opacity-50"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1 ml-2">Palavras-chave visuais que guiam a geração da imagem (3-5 palavras)</p>
               </div>
 
               <div className="relative">

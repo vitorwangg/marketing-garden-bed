@@ -397,6 +397,8 @@ const FabricaConteudo = () => {
         return resolveImageUrl(val, text);
       };
 
+      const globalImageUrl = parsed?.midia?.url || parsed?.midia?.link || undefined;
+
       const newContents: GeneratedContent[] = [];
 
       if (typeof data === "object" && data !== null && !Array.isArray(data)) {
@@ -415,7 +417,7 @@ const FabricaConteudo = () => {
             title: extractTitle(cleanText),
             summary: extractSummary(cleanText),
             fullText: cleanText,
-            imageUrl,
+            imageUrl: imageUrl || globalImageUrl,
             createdAt: new Date(),
             status: "pending" as const,
             useGeneratedMedia: true,
@@ -435,7 +437,7 @@ const FabricaConteudo = () => {
             title: extractTitle(cleanText),
             summary: extractSummary(cleanText),
             fullText: cleanText,
-            imageUrl,
+            imageUrl: imageUrl || globalImageUrl,
             createdAt: new Date(),
             status: "pending" as const,
             useGeneratedMedia: true,

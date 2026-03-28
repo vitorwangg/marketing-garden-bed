@@ -7,6 +7,7 @@ import {
   CheckCircle, Clock, FileText, Calendar
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import gtLogo from "@/assets/logo.png";
 
 interface NavItem {
   to: string;
@@ -85,9 +86,7 @@ const HamburgerSidebar = () => {
             >
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 gradient-peach rounded-xl flex items-center justify-center text-sm font-bold text-primary-foreground">
-                    {user?.name?.charAt(0)}
-                  </div>
+                  <img src={gtLogo} alt="GT Flow" className="w-9 h-9 rounded-xl object-contain" />
                   <div>
                     <p className="font-bold text-foreground text-sm">{user?.name}</p>
                     <p className="text-[10px] text-muted-foreground capitalize">{user?.plan}</p>

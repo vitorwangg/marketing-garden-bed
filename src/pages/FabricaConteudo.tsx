@@ -344,7 +344,7 @@ const FabricaConteudo = () => {
     console.log("Dados enviados ao n8n:", payload);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
 
     try {
       const res = await fetch(WEBHOOK_GERAR, {

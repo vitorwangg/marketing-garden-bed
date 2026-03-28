@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, Mail, Lock } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
+import gtLogo from "@/assets/logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 
 const quickProfiles = [
@@ -170,9 +171,7 @@ const Login = () => {
         style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(24px)" }}
       >
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 gradient-peach rounded-2xl flex items-center justify-center">
-            <Zap className="text-primary-foreground" size={24} />
-          </div>
+          <img src={gtLogo} alt="GT Flow" className="w-14 h-14 rounded-2xl object-contain" />
           <h1 className="text-3xl font-bold text-white">GT Flow Hub</h1>
         </div>
 

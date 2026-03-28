@@ -366,7 +366,7 @@ const FabricaConteudo = () => {
         try { parsed = JSON.parse(rawData); } catch { parsed = rawData; }
       }
 
-      let data = parsed?.data || parsed;
+      let data = parsed?.data?.data || parsed?.data || parsed;
       if (typeof data === "string") {
         try { data = JSON.parse(data); } catch { /* keep */ }
       }

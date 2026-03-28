@@ -297,7 +297,32 @@ const FabricaConteudo = () => {
     const safe = (val: string | null | undefined): string => val ?? "";
     const safeArr = (val: string[] | null | undefined): string => (val ?? []).join(", ");
 
+    // Insert a preliminary record in Supabase to get the conteudo_id
+    const { data: insertedRow, error: insertError } = await supabase
+      .from("conteudos")
+      .insert({
+        canal: channelLabels.join(", "),
+        channel_id: selectedChannels.length > 0 ? selectedChannels[0] : "instagram",
+        status: "gerando",
+        marca_id: selectedBrand.id,
+        marca_nome: selectedBrand.nome_da_marca ?? null,
+        tom_de_voz: safeArr(selectedBrand.tom_de_voz) || null,
+        user_id: user?.email ?? null,
+      })
+      .select("id")
+      .single();
+
+    if (insertError || !insertedRow) {
+      console.error("Erro ao criar registro de conteúdo:", insertError);
+      toast.error("Erro ao preparar geração de conteúdo.");
+      setIsGenerating(false);
+      return;
+    }
+
+    const conteudoId = insertedRow.id;
+
     const payload = {
+      conteudo_id: conteudoId,
       tema: prompt.trim() || `Crie conteúdo para ${safe(selectedBrand.nome_da_marca)}`,
       canais: channelLabels,
       logo: selectedLogo,

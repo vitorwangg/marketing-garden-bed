@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Palette, MessageCircle, Target, Ban, Upload, Pencil, ChevronLeft, Plus, Save, Check, X, Globe, ShoppingCart, FileText, Tag } from "lucide-react";
+import { Palette, MessageCircle, Target, Ban, Upload, Pencil, ChevronLeft, Plus, Save, Check, X, Globe, ShoppingCart, FileText, Tag, Key } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";

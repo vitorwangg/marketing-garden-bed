@@ -457,6 +457,7 @@ const FabricaConteudo = () => {
       }
 
       setContents(newContents);
+      setTokensUsed(prev => prev + 1);
       toast.success(`${newContents.length} conteúdo${newContents.length > 1 ? "s" : ""} gerado${newContents.length > 1 ? "s" : ""} com sucesso! 🎉`);
       setActiveTab("aprovacao");
     } catch (err: any) {

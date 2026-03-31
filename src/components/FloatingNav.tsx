@@ -1,8 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Dna, Sparkles, Users, BarChart3, Zap, CreditCard, LogOut, Brain, User, Moon, Sun } from "lucide-react";
+import { LayoutDashboard, Dna, Sparkles, Users, BarChart3, Zap, CreditCard, LogOut, Brain, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -17,7 +16,6 @@ const navItems = [
 
 const FloatingNav = () => {
   const { logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
   return (
@@ -54,13 +52,6 @@ const FloatingNav = () => {
           </NavLink>
         );
       })}
-      <button
-        onClick={toggleTheme}
-        className="flex flex-col items-center px-3 py-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
-      >
-        {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-        <span className="text-[10px] font-medium mt-0.5">{theme === "dark" ? "Claro" : "Escuro"}</span>
-      </button>
       <button
         onClick={logout}
         className="flex flex-col items-center px-3 py-2 rounded-full text-muted-foreground hover:text-destructive transition-colors"

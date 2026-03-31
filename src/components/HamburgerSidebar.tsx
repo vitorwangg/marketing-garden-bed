@@ -92,14 +92,19 @@ const HamburgerSidebar = () => {
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
                   <img src={gtLogo} alt="GT Flow" className="w-9 h-9 rounded-xl object-contain" />
-                  <div>
+                  <NavLink to="/perfil" onClick={() => setOpen(false)} className="hover:opacity-80 transition-opacity">
                     <p className="font-bold text-foreground text-sm">{user?.name}</p>
                     <p className="text-[10px] text-muted-foreground capitalize">{user?.plan}</p>
-                  </div>
+                  </NavLink>
                 </div>
-                <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
-                  <X size={20} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={toggleTheme} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                    {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+                  </button>
+                  <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
 
               <nav className="flex-1 space-y-0.5 overflow-y-auto">
@@ -149,13 +154,6 @@ const HamburgerSidebar = () => {
                 })}
               </nav>
 
-              <button
-                onClick={toggleTheme}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-              >
-                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-                {theme === "dark" ? "Modo Claro" : "Modo Noturno"}
-              </button>
               <button
                 onClick={() => { logout(); setOpen(false); }}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"

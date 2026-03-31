@@ -6,8 +6,12 @@ import {
   Sparkles, Send, Clock, CheckCircle, Flame, Search, TrendingUp,
   Instagram, Globe, Twitter, ChevronDown, Image, FileText, Trash2,
   Eye, X, CalendarIcon, Loader2, Mail, CheckCheck, AlertTriangle,
-  Download, Upload, ToggleLeft, ToggleRight, Video
+  Download, Upload, ToggleLeft, ToggleRight, Video, Coins
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -156,8 +160,9 @@ const FabricaConteudo = () => {
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [temaVisual, setTemaVisual] = useState("");
-
-  // Fetch brands from Supabase
+  const [tokensUsed, setTokensUsed] = useState(0);
+  const [showTokenDialog, setShowTokenDialog] = useState(false);
+  const TOTAL_TOKENS = 400;
   useEffect(() => {
     if (!user) return;
     const fetchBrands = async () => {
@@ -452,6 +457,7 @@ const FabricaConteudo = () => {
       }
 
       setContents(newContents);
+      setTokensUsed(prev => prev + 1);
       toast.success(`${newContents.length} conteúdo${newContents.length > 1 ? "s" : ""} gerado${newContents.length > 1 ? "s" : ""} com sucesso! 🎉`);
       setActiveTab("aprovacao");
     } catch (err: any) {
@@ -471,6 +477,11 @@ const FabricaConteudo = () => {
   const handleSendPrompt = () => {
     if (!selectedBrand) {
       toast.error("⚠️ Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.");
+      return;
+    }
+    if (tokensUsed >= TOTAL_TOKENS) {
+      toast.error("🪙 Seus tokens acabaram! Contrate mais tokens para continuar gerando.");
+      setShowTokenDialog(true);
       return;
     }
     if (!prompt.trim()) return;
@@ -632,10 +643,61 @@ const FabricaConteudo = () => {
   return (
     <div className="min-h-screen bg-background pb-28 px-4 pt-8">
       <div className="max-w-5xl mx-auto">
-        <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-3xl font-bold text-foreground mb-6">
-          <Sparkles className="inline mr-2 text-primary" size={28} />
-          Fábrica de Conteúdo
-        </motion.h1>
+        <div className="flex items-center justify-between mb-6">
+          <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-3xl font-bold text-foreground">
+            <Sparkles className="inline mr-2 text-primary" size={28} />
+            Fábrica de Conteúdo
+          </motion.h1>
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowTokenDialog(true)}
+            className="flex items-center gap-2 bg-card border border-border rounded-full px-4 py-2 shadow-card hover:shadow-hover transition-all"
+          >
+            <Coins size={16} className="text-primary" />
+            <span className="text-sm font-bold text-foreground">{TOTAL_TOKENS - tokensUsed}</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline">tokens</span>
+          </motion.button>
+        </div>
+
+        {/* Token Dialog */}
+        <Dialog open={showTokenDialog} onOpenChange={setShowTokenDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Coins size={20} className="text-primary" />
+                Seus Tokens
+              </DialogTitle>
+              <DialogDescription>Cada geração de conteúdo consome 1 token</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Utilizados</span>
+                <span className="font-bold text-foreground">{tokensUsed} / {TOTAL_TOKENS}</span>
+              </div>
+              <Progress value={(tokensUsed / TOTAL_TOKENS) * 100} className="h-3" />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Restantes</span>
+                <span className="font-bold text-primary">{TOTAL_TOKENS - tokensUsed}</span>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  setShowTokenDialog(false);
+                  // Trigger the floating chat
+                  const chatBtn = document.querySelector('[title="Fale com nosso concierge"]') as HTMLButtonElement;
+                  if (chatBtn) chatBtn.click();
+                }}
+                className="w-full py-3 gradient-peach text-primary-foreground rounded-2xl font-semibold text-sm mt-2"
+              >
+                🤝 Contratar Mais Tokens
+              </motion.button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6">

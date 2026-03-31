@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Brain, Zap, BarChart3, Users, ToggleLeft, ToggleRight,
-  Mail, MessageSquare, Instagram, TrendingUp, TrendingDown,
-  Pause, Play, Search, Clock, AlertTriangle, CheckCircle,
+  Brain, Zap, BarChart3, Users,
+  Mail, Search, TrendingUp, TrendingDown,
+  Clock, AlertTriangle, CheckCircle,
   DollarSign, Eye, MousePointer, Target
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -12,12 +12,16 @@ type SubTab = "flow" | "ads" | "sdr";
 type AdsPlatform = "all" | "meta" | "tiktok" | "google";
 
 const mockCampaigns = [
-  { id: "1", name: "Carrossel Verão 2026", platform: "meta" as const, spend: 4200, impressions: 125000, clicks: 2625, conversions: 234, ctr: "2.1%", cpc: "R$ 1,60", roas: "5.8x", status: "active" },
-  { id: "2", name: "Remarketing Carrinho", platform: "meta" as const, spend: 3100, impressions: 89000, clicks: 3026, conversions: 180, ctr: "3.4%", cpc: "R$ 1,02", roas: "4.0x", status: "active" },
-  { id: "3", name: "UGC Produto", platform: "tiktok" as const, spend: 950, impressions: 210000, clicks: 12180, conversions: 120, ctr: "5.8%", cpc: "R$ 0,08", roas: "3.9x", status: "active" },
-  { id: "4", name: "Spark Ads Brand", platform: "tiktok" as const, spend: 1500, impressions: 180000, clicks: 5760, conversions: 88, ctr: "3.2%", cpc: "R$ 0,26", roas: "3.0x", status: "paused" },
-  { id: "5", name: "Search Brand", platform: "google" as const, spend: 1800, impressions: 42000, clicks: 1764, conversions: 95, ctr: "4.2%", cpc: "R$ 1,02", roas: "4.2x", status: "active" },
-  { id: "6", name: "Display Retargeting", platform: "google" as const, spend: 2200, impressions: 320000, clicks: 3520, conversions: 67, ctr: "1.1%", cpc: "R$ 0,63", roas: "3.0x", status: "active" },
+  { id: "1", name: "Carrossel Verão 2026", platform: "meta" as const, spend: 4200, impressions: 125000, clicks: 2625, conversions: 234, ctr: "2.1%", cpc: "R$ 1,60", roas: "5.8x", status: "active", insight: "ROAS excelente em 5.8x. Recomendação: escalar orçamento em 30% mantendo o mesmo público. O criativo de carrossel está performando 2x acima da média do setor." },
+  { id: "2", name: "Remarketing Carrinho", platform: "meta" as const, spend: 3100, impressions: 89000, clicks: 3026, conversions: 180, ctr: "3.4%", cpc: "R$ 1,02", roas: "4.0x", status: "active", insight: "CTR de 3.4% indica boa relevância. Sugestão: testar variações de copy focadas em urgência. Considere adicionar countdown no criativo para aumentar conversões em 15-20%." },
+  { id: "3", name: "UGC Produto", platform: "tiktok" as const, spend: 950, impressions: 210000, clicks: 12180, conversions: 120, ctr: "5.8%", cpc: "R$ 0,08", roas: "3.9x", status: "active", insight: "CPC de R$ 0,08 é excepcional. O formato UGC está ressoando muito bem. Escalar investimento em 50% e replicar o formato para outros produtos. Atenção: audiência pode saturar em 7 dias." },
+  { id: "4", name: "Spark Ads Brand", platform: "tiktok" as const, spend: 1500, impressions: 180000, clicks: 5760, conversions: 88, ctr: "3.2%", cpc: "R$ 0,26", roas: "3.0x", status: "paused", insight: "ROAS de 3.0x está no limiar de rentabilidade. Recomendação: pausar e reavaliar público-alvo. Testar segmentação por interesse em vez de lookalike. Considere retomar em 15 dias com novo criativo." },
+  { id: "5", name: "Search Brand", platform: "google" as const, spend: 1800, impressions: 42000, clicks: 1764, conversions: 95, ctr: "4.2%", cpc: "R$ 1,02", roas: "4.2x", status: "active", insight: "Campanha de marca saudável com CTR 4.2%. Monitorar concorrentes que possam estar comprando sua marca. Adicionar extensões de sitelink para melhorar a experiência e aumentar CTR em 10%." },
+  { id: "6", name: "Display Retargeting", platform: "google" as const, spend: 2200, impressions: 320000, clicks: 3520, conversions: 67, ctr: "1.1%", cpc: "R$ 0,63", roas: "3.0x", status: "active", insight: "CTR de 1.1% está dentro da média para display. Recomendação: reduzir frequência para evitar fadiga de anúncio. Testar formatos responsivos e excluir placements com baixa qualidade." },
+  { id: "7", name: "Lookalike Compras", platform: "meta" as const, spend: 5800, impressions: 198000, clicks: 4356, conversions: 310, ctr: "2.2%", cpc: "R$ 1,33", roas: "6.2x", status: "active", insight: "Melhor ROAS do portfólio (6.2x). Audiência lookalike de compradores está validada. Escalar gradualmente (+20%/semana) e criar variações de criativos para evitar saturação. Potencial de escalar até R$ 12k/mês." },
+  { id: "8", name: "Stories Promoção", platform: "meta" as const, spend: 1200, impressions: 67000, clicks: 1876, conversions: 45, ctr: "2.8%", cpc: "R$ 0,64", roas: "2.1x", status: "active", insight: "ROAS de 2.1x abaixo do target de 3.0x. Sugestão: pausar e retrabalhar o criativo. O formato de stories precisa de mais movimento e texto maior. Testar vídeo vertical com depoimento de cliente." },
+  { id: "9", name: "In-Feed Awareness", platform: "tiktok" as const, spend: 2800, impressions: 520000, clicks: 15600, conversions: 52, ctr: "3.0%", cpc: "R$ 0,18", roas: "1.8x", status: "active", insight: "Campanha de awareness com CPM baixo (R$ 5,38). Embora ROAS seja baixo, está gerando volume de impressões significativo. Manter como topo de funil e direcionar para remarketing. Não escalar, manter budget atual." },
+  { id: "10", name: "Shopping Catálogo", platform: "google" as const, spend: 3500, impressions: 156000, clicks: 6240, conversions: 198, ctr: "4.0%", cpc: "R$ 0,56", roas: "5.1x", status: "active", insight: "Performance excelente com ROAS 5.1x. Feed de produtos bem otimizado. Recomendação: expandir catálogo com mais SKUs e ativar lances inteligentes. Potencial de dobrar investimento mantendo ROAS acima de 4x." },
 ];
 
 const mockInsights = [
@@ -41,12 +45,16 @@ const Intelligence = () => {
   const [sdrEnabled, setSdrEnabled] = useState(false);
   const [adsPlatform, setAdsPlatform] = useState<AdsPlatform>("all");
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+  const [analyzedIds, setAnalyzedIds] = useState<Set<string>>(new Set());
 
   const filteredCampaigns = adsPlatform === "all" ? mockCampaigns : mockCampaigns.filter((c) => c.platform === adsPlatform);
 
   const handleAnalyze = (id: string) => {
     setAnalyzingId(id);
-    setTimeout(() => setAnalyzingId(null), 2000);
+    setTimeout(() => {
+      setAnalyzingId(null);
+      setAnalyzedIds(prev => new Set(prev).add(id));
+    }, 2500);
   };
 
   const tabs: { id: SubTab; label: string; icon: any }[] = [
@@ -192,6 +200,20 @@ const Intelligence = () => {
                         </motion.div>
                       )}
                     </AnimatePresence>
+
+                    {/* Show insight after analysis */}
+                    {analyzedIds.has(c.id) && analyzingId !== c.id && (
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                        className="mt-4 bg-accent/10 border border-accent/20 rounded-xl p-4">
+                        <div className="flex items-start gap-2">
+                          <Brain size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-xs font-semibold text-foreground mb-1">💡 Insight da IA</p>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{c.insight}</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
                   </motion.div>
                 ))}
               </div>
@@ -214,30 +236,40 @@ const Intelligence = () => {
                 <Switch checked={sdrEnabled} onCheckedChange={setSdrEnabled} />
               </div>
 
-              <h3 className="font-bold text-foreground mb-4">Histórico de Insights</h3>
-              <div className="space-y-3">
-                {mockInsights.map((insight) => (
-                  <motion.div key={insight.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="bento-card p-5">
-                    <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        insight.type === "hot" ? "gradient-peach" : insight.type === "trend" ? "gradient-lilac" : insight.type === "alert" ? "bg-destructive/10" : "gradient-mint"
-                      }`}>
-                        {insight.type === "hot" && <TrendingUp size={14} className="text-primary-foreground" />}
-                        {insight.type === "trend" && <BarChart3 size={14} className="text-secondary-foreground" />}
-                        {insight.type === "alert" && <AlertTriangle size={14} className="text-destructive" />}
-                        {insight.type === "success" && <CheckCircle size={14} className="text-accent-foreground" />}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-foreground">{insight.summary}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Clock size={12} className="text-muted-foreground" />
-                          <span className="text-[10px] text-muted-foreground">{insight.date}</span>
+              {sdrEnabled ? (
+                <>
+                  <h3 className="font-bold text-foreground mb-4">Histórico de Insights</h3>
+                  <div className="space-y-3">
+                    {mockInsights.map((insight) => (
+                      <motion.div key={insight.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="bento-card p-5">
+                        <div className="flex items-start gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            insight.type === "hot" ? "gradient-peach" : insight.type === "trend" ? "gradient-lilac" : insight.type === "alert" ? "bg-destructive/10" : "gradient-mint"
+                          }`}>
+                            {insight.type === "hot" && <TrendingUp size={14} className="text-primary-foreground" />}
+                            {insight.type === "trend" && <BarChart3 size={14} className="text-secondary-foreground" />}
+                            {insight.type === "alert" && <AlertTriangle size={14} className="text-destructive" />}
+                            {insight.type === "success" && <CheckCircle size={14} className="text-accent-foreground" />}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm text-foreground">{insight.summary}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Clock size={12} className="text-muted-foreground" />
+                              <span className="text-[10px] text-muted-foreground">{insight.date}</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bento-card p-8 text-center">
+                  <Users size={40} className="text-muted-foreground mx-auto mb-4" />
+                  <h3 className="font-bold text-foreground mb-2">SDR Intelligence Desativado</h3>
+                  <p className="text-sm text-muted-foreground">Ative o SDR Intelligence acima para começar a gerar insights de atendimento e visualizar o histórico.</p>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

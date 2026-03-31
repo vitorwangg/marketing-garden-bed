@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Lock, Users, Clock, CreditCard, Moon, Sun, Plus, Trash2, Shield, Eye, Edit3 } from "lucide-react";
+import { User, Mail, Lock, Users, Clock, CreditCard, Moon, Sun, Plus, Trash2, Shield, ExternalLink } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Switch } from "@/components/ui/switch";
@@ -22,8 +22,8 @@ interface ActivityItem {
 interface ApiPayment {
   platform: string;
   plan: string;
-  value: string;
   renewal: string;
+  link: string;
 }
 
 const mockMembers: Member[] = [
@@ -41,10 +41,10 @@ const mockActivities: ActivityItem[] = [
 ];
 
 const mockApiPayments: ApiPayment[] = [
-  { platform: "OpenAI", plan: "GPT-4o Pro", value: "US$ 200/mês", renewal: "15/04/2026" },
-  { platform: "Meta Ads", plan: "Business", value: "R$ 500/mês", renewal: "01/04/2026" },
-  { platform: "Google Ads", plan: "Standard", value: "R$ 350/mês", renewal: "10/04/2026" },
-  { platform: "TikTok Ads", plan: "Starter", value: "R$ 150/mês", renewal: "20/04/2026" },
+  { platform: "OpenAI", plan: "GPT-4o Pro", renewal: "15/04/2026", link: "https://platform.openai.com/account/billing" },
+  { platform: "Meta Ads", plan: "Business", renewal: "01/04/2026", link: "https://business.facebook.com/billing" },
+  { platform: "Google Ads", plan: "Standard", renewal: "10/04/2026", link: "https://ads.google.com/aw/billing" },
+  { platform: "TikTok Ads", plan: "Starter", renewal: "20/04/2026", link: "https://ads.tiktok.com/i18n/account/payment" },
 ];
 
 const roleOptions: Member["role"][] = ["Admin", "Editor", "Visualizador"];
@@ -236,11 +236,11 @@ const Perfil = () => {
             </div>
           </motion.div>
 
-          {/* Pagamentos das APIs */}
+          {/* Controle das APIs */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bento-card p-6 md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <CreditCard size={20} className="text-primary" />
-              <h2 className="text-lg font-bold text-foreground">Pagamentos das APIs</h2>
+              <h2 className="text-lg font-bold text-foreground">Controle das APIs</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -248,8 +248,8 @@ const Perfil = () => {
                   <tr className="border-b border-border">
                     <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Plataforma</th>
                     <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Plano</th>
-                    <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Valor</th>
                     <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Renovação</th>
+                    <th className="text-right p-3 text-xs font-semibold text-muted-foreground">Ação</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -257,8 +257,13 @@ const Perfil = () => {
                     <tr key={i} className="border-b border-border last:border-0">
                       <td className="p-3 text-sm font-medium text-foreground">{p.platform}</td>
                       <td className="p-3 text-sm text-muted-foreground">{p.plan}</td>
-                      <td className="p-3 text-sm font-semibold text-foreground">{p.value}</td>
                       <td className="p-3 text-sm text-muted-foreground">{p.renewal}</td>
+                      <td className="p-3 text-right">
+                        <a href={p.link} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold gradient-peach text-primary-foreground hover:opacity-90 transition-opacity">
+                          Gerenciar <ExternalLink size={12} />
+                        </a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

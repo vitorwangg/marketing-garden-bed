@@ -1,8 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Dna, Sparkles, Users, BarChart3, Zap, CreditCard, LogOut, Brain, User, Moon, Sun } from "lucide-react";
+import { LayoutDashboard, Dna, Sparkles, Users, BarChart3, Zap, CreditCard, LogOut, Brain, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },

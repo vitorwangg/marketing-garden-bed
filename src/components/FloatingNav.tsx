@@ -55,6 +55,13 @@ const FloatingNav = () => {
         );
       })}
       <button
+        onClick={toggleTheme}
+        className="flex flex-col items-center px-3 py-2 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+        <span className="text-[10px] font-medium mt-0.5">{theme === "dark" ? "Claro" : "Escuro"}</span>
+      </button>
+      <button
         onClick={logout}
         className="flex flex-col items-center px-3 py-2 rounded-full text-muted-foreground hover:text-destructive transition-colors"
       >

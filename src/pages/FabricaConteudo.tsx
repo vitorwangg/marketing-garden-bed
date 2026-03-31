@@ -638,10 +638,61 @@ const FabricaConteudo = () => {
   return (
     <div className="min-h-screen bg-background pb-28 px-4 pt-8">
       <div className="max-w-5xl mx-auto">
-        <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-3xl font-bold text-foreground mb-6">
-          <Sparkles className="inline mr-2 text-primary" size={28} />
-          Fábrica de Conteúdo
-        </motion.h1>
+        <div className="flex items-center justify-between mb-6">
+          <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-3xl font-bold text-foreground">
+            <Sparkles className="inline mr-2 text-primary" size={28} />
+            Fábrica de Conteúdo
+          </motion.h1>
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowTokenDialog(true)}
+            className="flex items-center gap-2 bg-card border border-border rounded-full px-4 py-2 shadow-card hover:shadow-hover transition-all"
+          >
+            <Coins size={16} className="text-primary" />
+            <span className="text-sm font-bold text-foreground">{TOTAL_TOKENS - tokensUsed}</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline">tokens</span>
+          </motion.button>
+        </div>
+
+        {/* Token Dialog */}
+        <Dialog open={showTokenDialog} onOpenChange={setShowTokenDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Coins size={20} className="text-primary" />
+                Seus Tokens
+              </DialogTitle>
+              <DialogDescription>Cada geração de conteúdo consome 1 token</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Utilizados</span>
+                <span className="font-bold text-foreground">{tokensUsed} / {TOTAL_TOKENS}</span>
+              </div>
+              <Progress value={(tokensUsed / TOTAL_TOKENS) * 100} className="h-3" />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Restantes</span>
+                <span className="font-bold text-primary">{TOTAL_TOKENS - tokensUsed}</span>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  setShowTokenDialog(false);
+                  // Trigger the floating chat
+                  const chatBtn = document.querySelector('[title="Fale com nosso concierge"]') as HTMLButtonElement;
+                  if (chatBtn) chatBtn.click();
+                }}
+                className="w-full py-3 gradient-peach text-primary-foreground rounded-2xl font-semibold text-sm mt-2"
+              >
+                🤝 Contratar Mais Tokens
+              </motion.button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6">

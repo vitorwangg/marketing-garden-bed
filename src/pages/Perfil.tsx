@@ -236,11 +236,11 @@ const Perfil = () => {
             </div>
           </motion.div>
 
-          {/* Pagamentos das APIs */}
+          {/* Controle das APIs */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bento-card p-6 md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <CreditCard size={20} className="text-primary" />
-              <h2 className="text-lg font-bold text-foreground">Pagamentos das APIs</h2>
+              <h2 className="text-lg font-bold text-foreground">Controle das APIs</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -248,8 +248,8 @@ const Perfil = () => {
                   <tr className="border-b border-border">
                     <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Plataforma</th>
                     <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Plano</th>
-                    <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Valor</th>
                     <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Renovação</th>
+                    <th className="text-right p-3 text-xs font-semibold text-muted-foreground">Ação</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -257,8 +257,13 @@ const Perfil = () => {
                     <tr key={i} className="border-b border-border last:border-0">
                       <td className="p-3 text-sm font-medium text-foreground">{p.platform}</td>
                       <td className="p-3 text-sm text-muted-foreground">{p.plan}</td>
-                      <td className="p-3 text-sm font-semibold text-foreground">{p.value}</td>
                       <td className="p-3 text-sm text-muted-foreground">{p.renewal}</td>
+                      <td className="p-3 text-right">
+                        <a href={p.link} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold gradient-peach text-primary-foreground hover:opacity-90 transition-opacity">
+                          Gerenciar <ExternalLink size={12} />
+                        </a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -56,6 +56,7 @@ const HamburgerSidebar = () => {
   const [open, setOpen] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
   const toggleExpand = (label: string) => {

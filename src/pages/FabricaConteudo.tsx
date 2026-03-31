@@ -6,8 +6,12 @@ import {
   Sparkles, Send, Clock, CheckCircle, Flame, Search, TrendingUp,
   Instagram, Globe, Twitter, ChevronDown, Image, FileText, Trash2,
   Eye, X, CalendarIcon, Loader2, Mail, CheckCheck, AlertTriangle,
-  Download, Upload, ToggleLeft, ToggleRight, Video
+  Download, Upload, ToggleLeft, ToggleRight, Video, Coins
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";

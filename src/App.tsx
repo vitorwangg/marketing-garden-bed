@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import FloatingNav from "@/components/FloatingNav";
 import HamburgerSidebar from "@/components/HamburgerSidebar";
 import FloatingChat from "@/components/FloatingChat";
@@ -17,6 +18,8 @@ import ConciergeSDR from "./pages/ConciergeSDR";
 import AdsIntelligence from "./pages/AdsIntelligence";
 import DimNeutron from "./pages/DimNeutron";
 import Planos from "./pages/Planos";
+import Perfil from "./pages/Perfil";
+import Intelligence from "./pages/Intelligence";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

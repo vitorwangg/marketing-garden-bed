@@ -479,6 +479,11 @@ const FabricaConteudo = () => {
       toast.error("⚠️ Selecione uma marca primeiro! Vá em Brand DNA para cadastrar seu DNA.");
       return;
     }
+    if (tokensUsed >= TOTAL_TOKENS) {
+      toast.error("🪙 Seus tokens acabaram! Contrate mais tokens para continuar gerando.");
+      setShowTokenDialog(true);
+      return;
+    }
     if (!prompt.trim()) return;
     handleGenerate();
     setPrompt("");

@@ -62,6 +62,8 @@ const AppRoutes = () => {
           <Route path="/ads-intel" element={<ProtectedRoute><AdsIntelligence /></ProtectedRoute>} />
           <Route path="/dim-neutron" element={<ProtectedRoute><DimNeutron /></ProtectedRoute>} />
           <Route path="/planos" element={<ProtectedRoute><Planos /></ProtectedRoute>} />
+          <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+          <Route path="/intelligence" element={<ProtectedRoute><Intelligence /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </PageTransition>

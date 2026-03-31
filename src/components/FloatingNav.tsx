@@ -1,16 +1,18 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Dna, Sparkles, Users, BarChart3, Zap, CreditCard, LogOut } from "lucide-react";
+import { LayoutDashboard, Dna, Sparkles, Users, BarChart3, Zap, CreditCard, LogOut, Brain, User, Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/brand-dna", icon: Dna, label: "Brand DNA" },
   { to: "/fabrica", icon: Sparkles, label: "Fábrica" },
   { to: "/concierge", icon: Users, label: "Concierge" },
+  { to: "/intelligence", icon: Brain, label: "Intelligence" },
   { to: "/ads-intel", icon: BarChart3, label: "Ads" },
   { to: "/dim-neutron", icon: Zap, label: "Neutron" },
-  { to: "/planos", icon: CreditCard, label: "Planos" },
+  { to: "/perfil", icon: User, label: "Perfil" },
 ];
 
 const FloatingNav = () => {

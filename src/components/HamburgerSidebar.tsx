@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, LayoutDashboard, Dna, Sparkles, Users,
   BarChart3, Zap, CreditCard, LogOut, ChevronDown, Bot, Construction,
-  CheckCircle, Clock, FileText, Calendar
+  CheckCircle, Clock, FileText, Calendar, Brain, User, Moon, Sun
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import gtLogo from "@/assets/logo.png";
 
 interface NavItem {
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
     subItems: [
       { to: "/fabrica?tab=aprovacao", label: "Aprovação", icon: CheckCircle },
       { to: "/fabrica?tab=historico", label: "Histórico", icon: Clock },
+      { to: "/fabrica?tab=calendario", label: "Calendário", icon: Calendar },
     ]
   },
   {
@@ -38,6 +40,7 @@ const navItems: NavItem[] = [
       { to: "/concierge?tab=fluxo_bot", label: "Fluxo Bot", icon: Bot },
     ]
   },
+  { to: "/intelligence", icon: Brain, label: "Intelligence" },
   { to: "/ads-intel", icon: BarChart3, label: "Ads Cockpit" },
   {
     to: "/dim-neutron", icon: Zap, label: "Jimmy Neutron",
@@ -46,6 +49,7 @@ const navItems: NavItem[] = [
     ]
   },
   { to: "/planos", icon: CreditCard, label: "Planos" },
+  { to: "/perfil", icon: User, label: "Perfil" },
 ];
 
 const HamburgerSidebar = () => {

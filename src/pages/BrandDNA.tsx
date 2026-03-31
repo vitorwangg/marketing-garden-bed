@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Palette, MessageCircle, Target, Ban, Upload, Pencil, ChevronLeft, Plus, Save, Check, X, Globe, ShoppingCart, FileText, Tag } from "lucide-react";
+import { Palette, MessageCircle, Target, Ban, Upload, Pencil, ChevronLeft, Plus, Save, Check, X, Globe, ShoppingCart, FileText, Tag, Key } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,6 +71,13 @@ const BrandDNA = () => {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // API Keys state
+  const [apiKeys, setApiKeys] = useState<{ platform: string; key: string; status: "connected" | "pending" }[]>([]);
+  const [newApiPlatform, setNewApiPlatform] = useState("");
+  const [newApiKey, setNewApiKey] = useState("");
+
+  const apiPlatformOptions = ["Meta", "TikTok", "Google", "OpenAI", "Hugging Face", "Stability AI", "Anthropic", "Replicate"];
 
   const fetchBrands = useCallback(async () => {
     if (!user) return;
@@ -447,6 +454,51 @@ const BrandDNA = () => {
                     <input value={newNicho} onChange={(e) => setNewNicho(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNicho()}
                       placeholder="Ex: SaaS, E-commerce..." className="flex-1 bg-muted rounded-full px-4 py-2.5 text-sm text-foreground focus-glow" />
                     <button onClick={addNicho} className="gradient-peach text-primary-foreground px-4 rounded-full font-medium text-sm">+</button>
+                  </div>
+                </motion.div>
+
+                {/* APIs da Marca */}
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }} className="bento-card p-6 md:col-span-2">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Key size={20} className="text-primary" />
+                    <h2 className="text-lg font-bold text-foreground">APIs da Marca</h2>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    {apiKeys.map((api, i) => (
+                      <div key={i} className="flex items-center gap-3 bg-muted/50 rounded-xl px-4 py-3">
+                        <span className="text-sm font-medium text-foreground flex-1">{api.platform}</span>
+                        <span className="text-xs text-muted-foreground font-mono">{api.key.slice(0, 8)}...{api.key.slice(-4)}</span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${api.status === "connected" ? "bg-accent text-accent-foreground" : "bg-secondary text-secondary-foreground"}`}>
+                          {api.status === "connected" ? "Conectado" : "Pendente"}
+                        </span>
+                        <button onClick={() => setApiKeys(apiKeys.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive">
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    {apiKeys.length === 0 && <p className="text-xs text-muted-foreground">Nenhuma API configurada. Adicione abaixo.</p>}
+                  </div>
+                  <div className="flex gap-2">
+                    <select value={newApiPlatform} onChange={(e) => setNewApiPlatform(e.target.value)}
+                      className="bg-muted rounded-xl px-3 py-2.5 text-sm text-foreground focus-glow border border-border">
+                      <option value="">Plataforma...</option>
+                      {apiPlatformOptions.filter(p => !apiKeys.find(a => a.platform === p)).map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                    <input value={newApiKey} onChange={(e) => setNewApiKey(e.target.value)} placeholder="Chave de API..."
+                      className="flex-1 bg-muted rounded-xl px-4 py-2.5 text-sm text-foreground focus-glow font-mono" />
+                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        if (newApiPlatform && newApiKey.trim()) {
+                          setApiKeys([...apiKeys, { platform: newApiPlatform, key: newApiKey.trim(), status: newApiKey.length > 20 ? "connected" : "pending" }]);
+                          setNewApiPlatform("");
+                          setNewApiKey("");
+                        }
+                      }}
+                      className="gradient-peach text-primary-foreground px-4 rounded-xl font-medium text-sm flex items-center gap-1">
+                      <Plus size={16} /> Salvar
+                    </motion.button>
                   </div>
                 </motion.div>
 

@@ -14,6 +14,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import FabricaCalendario from "@/components/FabricaCalendario";
 
 const trendingTopics = [
   { category: "Marketing", items: ["🔥 Dia das Mães", "Copy Persuasiva", "Funil AIDA", "Email Marketing 2026", "Growth Hacking"] },
@@ -138,7 +139,7 @@ const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50MB
 
 const FabricaConteudo = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"criacao" | "aprovacao" | "historico">("criacao");
+  const [activeTab, setActiveTab] = useState<"criacao" | "aprovacao" | "historico" | "calendario">("criacao");
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedBrandId, setSelectedBrandId] = useState("");
   const [selectedLogo, setSelectedLogo] = useState<string>(logoVersions[0]);
@@ -625,8 +626,8 @@ const FabricaConteudo = () => {
   const filteredHistory = channelFilter ? history.filter(h => h.channel === channelFilter || getChannelId(h.channel) === channelFilter) : history;
   const filteredContents = channelFilter ? contents.filter(c => c.channelId === channelFilter) : contents;
 
-  const tabs = ["criacao", "aprovacao", "historico"] as const;
-  const tabLabels = { criacao: "Criação", aprovacao: "Aprovação", historico: "Histórico" };
+  const tabs = ["criacao", "aprovacao", "historico", "calendario"] as const;
+  const tabLabels = { criacao: "Criação", aprovacao: "Aprovação", historico: "Histórico", calendario: "Calendário" } as const;
 
   return (
     <div className="min-h-screen bg-background pb-28 px-4 pt-8">
@@ -987,6 +988,10 @@ const FabricaConteudo = () => {
               )}
             </div>
           </>
+        )}
+
+        {activeTab === "calendario" && (
+          <FabricaCalendario />
         )}
       </div>
 

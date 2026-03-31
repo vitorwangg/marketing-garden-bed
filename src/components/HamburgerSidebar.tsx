@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, LayoutDashboard, Dna, Sparkles, Users,
   BarChart3, Zap, CreditCard, LogOut, ChevronDown, Bot, Construction,
-  CheckCircle, Clock, FileText, Calendar
+  CheckCircle, Clock, FileText, Calendar, Brain, User, Moon, Sun
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import gtLogo from "@/assets/logo.png";
 
 interface NavItem {
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
     subItems: [
       { to: "/fabrica?tab=aprovacao", label: "Aprovação", icon: CheckCircle },
       { to: "/fabrica?tab=historico", label: "Histórico", icon: Clock },
+      { to: "/fabrica?tab=calendario", label: "Calendário", icon: Calendar },
     ]
   },
   {
@@ -38,6 +40,7 @@ const navItems: NavItem[] = [
       { to: "/concierge?tab=fluxo_bot", label: "Fluxo Bot", icon: Bot },
     ]
   },
+  { to: "/intelligence", icon: Brain, label: "Intelligence" },
   { to: "/ads-intel", icon: BarChart3, label: "Ads Cockpit" },
   {
     to: "/dim-neutron", icon: Zap, label: "Jimmy Neutron",
@@ -46,12 +49,14 @@ const navItems: NavItem[] = [
     ]
   },
   { to: "/planos", icon: CreditCard, label: "Planos" },
+  { to: "/perfil", icon: User, label: "Perfil" },
 ];
 
 const HamburgerSidebar = () => {
   const [open, setOpen] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
   const toggleExpand = (label: string) => {
@@ -144,6 +149,13 @@ const HamburgerSidebar = () => {
                 })}
               </nav>
 
+              <button
+                onClick={toggleTheme}
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              >
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                {theme === "dark" ? "Modo Claro" : "Modo Noturno"}
+              </button>
               <button
                 onClick={() => { logout(); setOpen(false); }}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"

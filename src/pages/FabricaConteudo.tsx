@@ -160,8 +160,9 @@ const FabricaConteudo = () => {
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [temaVisual, setTemaVisual] = useState("");
-
-  // Fetch brands from Supabase
+  const [tokensUsed, setTokensUsed] = useState(0);
+  const [showTokenDialog, setShowTokenDialog] = useState(false);
+  const TOTAL_TOKENS = 400;
   useEffect(() => {
     if (!user) return;
     const fetchBrands = async () => {

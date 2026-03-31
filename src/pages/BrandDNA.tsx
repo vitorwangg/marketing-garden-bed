@@ -72,6 +72,13 @@ const BrandDNA = () => {
   const [saving, setSaving] = useState(false);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
+  // API Keys state
+  const [apiKeys, setApiKeys] = useState<{ platform: string; key: string; status: "connected" | "pending" }[]>([]);
+  const [newApiPlatform, setNewApiPlatform] = useState("");
+  const [newApiKey, setNewApiKey] = useState("");
+
+  const apiPlatformOptions = ["Meta", "TikTok", "Google", "OpenAI", "Hugging Face", "Stability AI", "Anthropic", "Replicate"];
+
   const fetchBrands = useCallback(async () => {
     if (!user) return;
     setLoading(true);

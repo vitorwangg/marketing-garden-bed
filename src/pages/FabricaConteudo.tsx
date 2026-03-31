@@ -625,8 +625,8 @@ const FabricaConteudo = () => {
   const filteredHistory = channelFilter ? history.filter(h => h.channel === channelFilter || getChannelId(h.channel) === channelFilter) : history;
   const filteredContents = channelFilter ? contents.filter(c => c.channelId === channelFilter) : contents;
 
-  const tabs = ["criacao", "aprovacao", "historico"] as const;
-  const tabLabels = { criacao: "Criação", aprovacao: "Aprovação", historico: "Histórico" };
+  const tabs = ["criacao", "aprovacao", "historico", "calendario"] as const;
+  const tabLabels = { criacao: "Criação", aprovacao: "Aprovação", historico: "Histórico", calendario: "Calendário" } as const;
 
   return (
     <div className="min-h-screen bg-background pb-28 px-4 pt-8">

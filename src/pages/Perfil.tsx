@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Lock, Users, Clock, CreditCard, Moon, Sun, Plus, Trash2, Shield, Eye, Edit3 } from "lucide-react";
+import { User, Mail, Lock, Users, Clock, CreditCard, Moon, Sun, Plus, Trash2, Shield, ExternalLink } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Switch } from "@/components/ui/switch";

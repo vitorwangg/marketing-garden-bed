@@ -988,6 +988,10 @@ const FabricaConteudo = () => {
             </div>
           </>
         )}
+
+        {activeTab === "calendario" && (
+          <FabricaCalendario />
+        )}
       </div>
 
       {/* ============ MULTI-CHANNEL MODAL ============ */}

@@ -22,8 +22,8 @@ interface ActivityItem {
 interface ApiPayment {
   platform: string;
   plan: string;
-  value: string;
   renewal: string;
+  link: string;
 }
 
 const mockMembers: Member[] = [

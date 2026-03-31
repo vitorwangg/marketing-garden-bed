@@ -16,7 +16,6 @@ const navItems = [
 
 const FloatingNav = () => {
   const { logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
   return (

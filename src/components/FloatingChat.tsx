@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send } from "lucide-react";
+import { X, Send } from "lucide-react";
 
 const FloatingChat = () => {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<{ role: "ai" | "user"; text: string }[]>([
-    { role: "ai", text: "Olá! Sou o assistente GT Flow. Como posso ajudar?" },
+    { role: "ai", text: "Olá! Sou o concierge GT Flow. Como posso ajudar? 🤝" },
   ]);
 
   const send = () => {
@@ -30,7 +30,7 @@ const FloatingChat = () => {
             className="fixed bottom-24 right-4 z-50 w-80 bg-card rounded-squircle shadow-hover overflow-hidden border border-border"
           >
             <div className="p-4 border-b border-border flex items-center justify-between">
-              <span className="font-bold text-foreground text-sm">GT Flow Chat</span>
+              <span className="font-bold text-foreground text-sm">🤝 Concierge GT Flow</span>
               <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
                 <X size={16} />
               </button>
@@ -66,11 +66,10 @@ const FloatingChat = () => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setOpen(!open)}
-        className={`fixed bottom-24 right-4 z-50 w-12 h-12 rounded-full flex items-center justify-center shadow-card transition-colors ${
-          open ? "bg-blue-500 text-white" : "bg-card text-muted-foreground hover:text-foreground"
-        }`}
+        className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-card gradient-peach text-2xl"
+        title="Fale com nosso concierge"
       >
-        {open ? <X size={20} /> : <MessageCircle size={20} />}
+        {open ? <X size={22} className="text-primary-foreground" /> : "🤝"}
       </motion.button>
     </>
   );

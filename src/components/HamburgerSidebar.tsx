@@ -155,13 +155,6 @@ const HamburgerSidebar = () => {
               </nav>
 
               <button
-                onClick={toggleTheme}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-              >
-                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-                {theme === "dark" ? "Modo Claro" : "Modo Noturno"}
-              </button>
-              <button
                 onClick={() => { logout(); setOpen(false); }}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
               >

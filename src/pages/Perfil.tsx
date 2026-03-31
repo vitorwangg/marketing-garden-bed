@@ -41,10 +41,10 @@ const mockActivities: ActivityItem[] = [
 ];
 
 const mockApiPayments: ApiPayment[] = [
-  { platform: "OpenAI", plan: "GPT-4o Pro", value: "US$ 200/mês", renewal: "15/04/2026" },
-  { platform: "Meta Ads", plan: "Business", value: "R$ 500/mês", renewal: "01/04/2026" },
-  { platform: "Google Ads", plan: "Standard", value: "R$ 350/mês", renewal: "10/04/2026" },
-  { platform: "TikTok Ads", plan: "Starter", value: "R$ 150/mês", renewal: "20/04/2026" },
+  { platform: "OpenAI", plan: "GPT-4o Pro", renewal: "15/04/2026", link: "https://platform.openai.com/account/billing" },
+  { platform: "Meta Ads", plan: "Business", renewal: "01/04/2026", link: "https://business.facebook.com/billing" },
+  { platform: "Google Ads", plan: "Standard", renewal: "10/04/2026", link: "https://ads.google.com/aw/billing" },
+  { platform: "TikTok Ads", plan: "Starter", renewal: "20/04/2026", link: "https://ads.tiktok.com/i18n/account/payment" },
 ];
 
 const roleOptions: Member["role"][] = ["Admin", "Editor", "Visualizador"];

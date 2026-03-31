@@ -14,6 +14,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import FabricaCalendario from "@/components/FabricaCalendario";
 
 const trendingTopics = [
   { category: "Marketing", items: ["🔥 Dia das Mães", "Copy Persuasiva", "Funil AIDA", "Email Marketing 2026", "Growth Hacking"] },

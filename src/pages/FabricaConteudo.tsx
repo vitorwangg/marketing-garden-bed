@@ -138,7 +138,7 @@ const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50MB
 
 const FabricaConteudo = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"criacao" | "aprovacao" | "historico">("criacao");
+  const [activeTab, setActiveTab] = useState<"criacao" | "aprovacao" | "historico" | "calendario">("criacao");
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedBrandId, setSelectedBrandId] = useState("");
   const [selectedLogo, setSelectedLogo] = useState<string>(logoVersions[0]);

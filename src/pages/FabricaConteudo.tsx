@@ -717,8 +717,8 @@ const FabricaConteudo = () => {
   const filteredHistory = channelFilter ? history.filter(h => h.channel === channelFilter || getChannelId(h.channel) === channelFilter) : history;
   const filteredContents = channelFilter ? contents.filter(c => c.channelId === channelFilter) : contents;
 
-  const tabs = ["criacao", "aprovacao", "historico", "calendario"] as const;
-  const tabLabels = { criacao: "Criação", aprovacao: "Aprovação", historico: "Histórico", calendario: "Calendário" } as const;
+  const tabs = ["criacao", "aprovacao", "historico", "calendario", ...(selectedBrandHasBlog ? ["blog"] as const : [])] as const;
+  const tabLabels: Record<string, string> = { criacao: "Criação", aprovacao: "Aprovação", historico: "Histórico", calendario: "Calendário", blog: "📝 Blog" };
 
   return (
     <div className="min-h-screen bg-background pb-28 px-4 pt-8">

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Palette, MessageCircle, Target, Ban, Upload, Pencil, ChevronLeft, Plus, Save, Check, X, Globe, ShoppingCart, FileText, Tag, Key } from "lucide-react";
+import { Palette, MessageCircle, Target, Ban, Upload, Pencil, ChevronLeft, Plus, Save, Check, X, Globe, ShoppingCart, FileText, Tag, Key, Eye, EyeOff, Loader2, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,8 @@ interface MarcaRow {
   tom_de_voz: string[] | null;
   palavras_proibidas: string[] | null;
   user_id: string | null;
+  blog_url: string | null;
+  blog_key: string | null;
 }
 
 const BrandDNA = () => {
@@ -78,6 +80,13 @@ const BrandDNA = () => {
   const [newApiKey, setNewApiKey] = useState("");
 
   const apiPlatformOptions = ["Meta", "TikTok", "Google", "OpenAI", "Hugging Face", "Stability AI", "Anthropic", "Replicate"];
+
+  // Blog state
+  const [blogUrl, setBlogUrl] = useState("");
+  const [blogKey, setBlogKey] = useState("");
+  const [showBlogKey, setShowBlogKey] = useState(false);
+  const [testingBlog, setTestingBlog] = useState(false);
+  const [blogStatus, setBlogStatus] = useState<"idle" | "connected" | "error">("idle");
 
   const fetchBrands = useCallback(async () => {
     if (!user) return;
@@ -120,6 +129,10 @@ const BrandDNA = () => {
     setIdiomaPadrao(brand.idioma_padrao || "");
     setMercadoNicho(brand.mercado_nicho || []);
     setSaved(false);
+    setBlogUrl(brand.blog_url || "");
+    setBlogKey(brand.blog_key || "");
+    setBlogStatus(brand.blog_url && brand.blog_key ? "connected" : "idle");
+    setShowBlogKey(false);
   };
 
   const openNewBrand = () => {
@@ -138,6 +151,10 @@ const BrandDNA = () => {
     setMercadoNicho([]);
     setNewNicho("");
     setSaved(false);
+    setBlogUrl("");
+    setBlogKey("");
+    setBlogStatus("idle");
+    setShowBlogKey(false);
   };
 
   const closeEditor = () => {
@@ -220,7 +237,7 @@ const BrandDNA = () => {
         }
       }
 
-      const row = {
+      const row: Record<string, unknown> = {
         id: brandId,
         user_id: user.email,
         nome_da_marca: brandName,
@@ -238,9 +255,11 @@ const BrandDNA = () => {
         modelo_venda: modeloVenda || null,
         idioma_padrao: idiomaPadrao || null,
         mercado_nicho: mercadoNicho,
+        blog_url: blogUrl.trim() || null,
+        blog_key: blogKey.trim() || null,
       };
 
-      const { error } = await supabase.from("marcas").upsert(row, { onConflict: "id" });
+      const { error } = await supabase.from("marcas").upsert(row as any, { onConflict: "id" });
 
       if (error) throw error;
 
@@ -498,6 +517,96 @@ const BrandDNA = () => {
                       }}
                       className="gradient-peach text-primary-foreground px-4 rounded-xl font-medium text-sm flex items-center gap-1">
                       <Plus size={16} /> Salvar
+                    </motion.button>
+                  </div>
+                </motion.div>
+
+                {/* Blog da Marca */}
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.33 }} className="bento-card p-6 md:col-span-2">
+                  <div className="flex items-center gap-3 mb-4">
+                    <BookOpen size={20} className="text-primary" />
+                    <h2 className="text-lg font-bold text-foreground">Blog da Marca</h2>
+                    {blogStatus !== "idle" && (
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${blogStatus === "connected" ? "bg-accent text-accent-foreground" : "bg-destructive/10 text-destructive"}`}>
+                        {blogStatus === "connected" ? "✅ Conectado" : "❌ Erro"}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-4">Conecte o Supabase do blog desta marca para publicar conteúdos diretamente.</p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground mb-1 block">URL do Supabase do Blog</label>
+                      <input
+                        value={blogUrl}
+                        onChange={(e) => { setBlogUrl(e.target.value); setBlogStatus("idle"); }}
+                        placeholder="https://seu-projeto.supabase.co"
+                        className="w-full bg-muted rounded-xl px-4 py-2.5 text-sm text-foreground focus-glow font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Service Role Key</label>
+                      <div className="relative">
+                        <input
+                          type={showBlogKey ? "text" : "password"}
+                          value={blogKey}
+                          onChange={(e) => { setBlogKey(e.target.value); setBlogStatus("idle"); }}
+                          placeholder="cole a service_role key do Supabase do blog"
+                          className="w-full bg-muted rounded-xl px-4 py-2.5 pr-10 text-sm text-foreground focus-glow font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowBlogKey(!showBlogKey)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showBlogKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      disabled={!blogUrl.trim() || !blogKey.trim() || testingBlog}
+                      onClick={async () => {
+                        setTestingBlog(true);
+                        setBlogStatus("idle");
+                        try {
+                          const res = await supabase.functions.invoke("blog-proxy", {
+                            body: { action: "test", marca_id: isAddingNew ? "__skip__" : editingBrandId },
+                          });
+                          // If brand not saved yet, test directly
+                          if (isAddingNew || !editingBrandId) {
+                            // Direct test
+                            const testRes = await fetch(`${blogUrl.trim().replace(/\/+$/, "")}/rest/v1/posts?limit=1`, {
+                              headers: { apikey: blogKey.trim(), Authorization: `Bearer ${blogKey.trim()}` },
+                            });
+                            setBlogStatus(testRes.ok ? "connected" : "error");
+                            toast[testRes.ok ? "success" : "error"](testRes.ok ? "✅ Conexão com o blog bem-sucedida!" : "❌ Erro de conexão com o blog");
+                          } else if (res.data?.status === "connected") {
+                            setBlogStatus("connected");
+                            toast.success("✅ Conexão com o blog bem-sucedida!");
+                          } else {
+                            setBlogStatus("error");
+                            toast.error("❌ Erro de conexão: " + (res.data?.message || "Verifique as credenciais"));
+                          }
+                        } catch (err: any) {
+                          // Fallback: test directly
+                          try {
+                            const testRes = await fetch(`${blogUrl.trim().replace(/\/+$/, "")}/rest/v1/posts?limit=1`, {
+                              headers: { apikey: blogKey.trim(), Authorization: `Bearer ${blogKey.trim()}` },
+                            });
+                            setBlogStatus(testRes.ok ? "connected" : "error");
+                            toast[testRes.ok ? "success" : "error"](testRes.ok ? "✅ Conexão com o blog bem-sucedida!" : "❌ Erro de conexão com o blog");
+                          } catch {
+                            setBlogStatus("error");
+                            toast.error("❌ Erro de conexão com o blog");
+                          }
+                        } finally {
+                          setTestingBlog(false);
+                        }
+                      }}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl gradient-peach text-primary-foreground text-sm font-semibold disabled:opacity-50"
+                    >
+                      {testingBlog ? <><Loader2 size={14} className="animate-spin" /> Testando...</> : "🔗 Testar Conexão"}
                     </motion.button>
                   </div>
                 </motion.div>

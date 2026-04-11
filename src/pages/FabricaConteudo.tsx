@@ -6,7 +6,7 @@ import {
   Sparkles, Send, Clock, CheckCircle, Flame, Search, TrendingUp,
   Instagram, Globe, Twitter, ChevronDown, Image, FileText, Trash2,
   Eye, X, CalendarIcon, Loader2, Mail, CheckCheck, AlertTriangle,
-  Download, Upload, ToggleLeft, ToggleRight, Video, Coins
+  Download, Upload, ToggleLeft, ToggleRight, Video, Coins, BookOpen, RefreshCw, ExternalLink
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -63,6 +63,9 @@ interface GeneratedContent {
   useGeneratedMedia: boolean;
   customMediaUrl?: string;
   customMediaType?: "imagem" | "video";
+  // Blog publish tracking
+  blogPostId?: string;
+  blogPublished?: boolean;
 }
 
 interface HistoryItem {
@@ -143,7 +146,7 @@ const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50MB
 
 const FabricaConteudo = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"criacao" | "aprovacao" | "historico" | "calendario">("criacao");
+  const [activeTab, setActiveTab] = useState<"criacao" | "aprovacao" | "historico" | "calendario" | "blog">("criacao");
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedBrandId, setSelectedBrandId] = useState("");
   const [selectedLogo, setSelectedLogo] = useState<string>(logoVersions[0]);
@@ -162,6 +165,9 @@ const FabricaConteudo = () => {
   const [temaVisual, setTemaVisual] = useState("");
   const [tokensUsed, setTokensUsed] = useState(0);
   const [showTokenDialog, setShowTokenDialog] = useState(false);
+  const [blogPublishingId, setBlogPublishingId] = useState<string | null>(null);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [loadingBlogPosts, setLoadingBlogPosts] = useState(false);
   const TOTAL_TOKENS = 400;
   useEffect(() => {
     if (!user) return;
@@ -213,6 +219,80 @@ const FabricaConteudo = () => {
   }, [user]);
 
   const selectedBrand = brands.find(b => b.id === selectedBrandId) || null;
+  const selectedBrandHasBlog = !!(selectedBrand && (selectedBrand as any).blog_url && (selectedBrand as any).blog_key);
+
+  // Fetch blog posts when blog tab is active and brand has blog
+  useEffect(() => {
+    if (activeTab !== "blog" || !selectedBrandHasBlog || !selectedBrand) return;
+    const fetchBlogPosts = async () => {
+      setLoadingBlogPosts(true);
+      try {
+        const res = await supabase.functions.invoke("blog-proxy", {
+          body: { action: "list", marca_id: selectedBrand.id },
+        });
+        if (res.data?.posts) {
+          setBlogPosts(res.data.posts);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar posts do blog:", err);
+      } finally {
+        setLoadingBlogPosts(false);
+      }
+    };
+    fetchBlogPosts();
+  }, [activeTab, selectedBrandId, selectedBrandHasBlog]);
+
+  const handleBlogPublish = async (content: GeneratedContent) => {
+    if (blogPublishingId || !selectedBrand) return;
+    setBlogPublishingId(content.id);
+
+    try {
+      const categoryMap: Record<string, string> = {
+        meta: "meta", facebook: "meta", instagram: "meta",
+        tiktok: "conteudo", blog: "conteudo", email: "conteudo",
+        landing: "landing", ia: "ia", dados: "dados",
+      };
+      const category = categoryMap[content.channelId] || "conteudo";
+      const wordCount = (content.fullText || "").split(/\s+/).length;
+      const readTime = Math.max(2, Math.ceil(wordCount / 200));
+      const authorName = user?.name || (selectedBrand as any).nome_da_marca || "Autor";
+
+      const body: Record<string, unknown> = {
+        action: content.blogPostId ? "republish" : "publish",
+        marca_id: selectedBrand.id,
+        title: content.title,
+        description: content.summary || content.fullText.slice(0, 200),
+        content: content.fullText,
+        category,
+        read_time: readTime,
+        author_name: authorName,
+        author_initials: authorName.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2),
+        cover_image: content.imageUrl || null,
+      };
+
+      if (content.blogPostId) {
+        body.post_id = content.blogPostId;
+      }
+
+      const res = await supabase.functions.invoke("blog-proxy", { body });
+
+      if (res.data?.success) {
+        const postId = res.data.post?.id;
+        setContents(prev => prev.map(c =>
+          c.id === content.id ? { ...c, blogPublished: true, blogPostId: postId || c.blogPostId } : c
+        ));
+        setViewingContent(prev => prev && prev.id === content.id ? { ...prev, blogPublished: true, blogPostId: postId || prev.blogPostId } : prev);
+        toast.success(`✅ Post publicado no blog da ${(selectedBrand as any).nome_da_marca}!`);
+      } else {
+        toast.error(`❌ Erro ao publicar: ${res.data?.error || "Tente novamente"}`);
+      }
+    } catch (err: any) {
+      console.error("Blog publish error:", err);
+      toast.error(`❌ Erro ao publicar no blog: ${err.message}`);
+    } finally {
+      setBlogPublishingId(null);
+    }
+  };
 
   const getSelectedLogoUrl = (): string | null => {
     if (!selectedBrand) return null;
@@ -637,8 +717,8 @@ const FabricaConteudo = () => {
   const filteredHistory = channelFilter ? history.filter(h => h.channel === channelFilter || getChannelId(h.channel) === channelFilter) : history;
   const filteredContents = channelFilter ? contents.filter(c => c.channelId === channelFilter) : contents;
 
-  const tabs = ["criacao", "aprovacao", "historico", "calendario"] as const;
-  const tabLabels = { criacao: "Criação", aprovacao: "Aprovação", historico: "Histórico", calendario: "Calendário" } as const;
+  const tabs = ["criacao", "aprovacao", "historico", "calendario", ...(selectedBrandHasBlog ? ["blog"] as const : [])] as const;
+  const tabLabels: Record<string, string> = { criacao: "Criação", aprovacao: "Aprovação", historico: "Histórico", calendario: "Calendário", blog: "📝 Blog" };
 
   return (
     <div className="min-h-screen bg-background pb-28 px-4 pt-8">
@@ -936,13 +1016,35 @@ const FabricaConteudo = () => {
                         </button>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                             onClick={() => handlePost(content)}
                             disabled={!!publishingId}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full gradient-peach text-primary-foreground text-xs font-semibold shadow-card disabled:opacity-50">
                             {publishingId === content.id ? <><Loader2 size={13} className="animate-spin" /> Publicando...</> : <><Send size={13} /> Publicar</>}
                           </motion.button>
+                          {selectedBrandHasBlog && (
+                            content.blogPublished ? (
+                              <div className="flex items-center gap-1">
+                                <span className="flex items-center gap-1 px-3 py-2 rounded-full bg-accent/20 text-accent-foreground text-xs font-semibold">
+                                  ✓ Publicado
+                                </span>
+                                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                                  onClick={() => handleBlogPublish(content)}
+                                  disabled={!!blogPublishingId}
+                                  className="flex items-center gap-1 px-3 py-2 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold disabled:opacity-50">
+                                  {blogPublishingId === content.id ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />} Republicar
+                                </motion.button>
+                              </div>
+                            ) : (
+                              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                                onClick={() => handleBlogPublish(content)}
+                                disabled={!!blogPublishingId}
+                                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold disabled:opacity-50">
+                                {blogPublishingId === content.id ? <><Loader2 size={13} className="animate-spin" /> Blog...</> : <>📝 Blog</>}
+                              </motion.button>
+                            )
+                          )}
                           <ScheduleButton contentId={content.id} onSchedule={handleSchedule} />
                           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                             onClick={() => handleDelete(content.id)}
@@ -1055,6 +1157,66 @@ const FabricaConteudo = () => {
         {activeTab === "calendario" && (
           <FabricaCalendario />
         )}
+
+        {activeTab === "blog" && selectedBrandHasBlog && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <BookOpen size={18} className="text-primary" />
+                <h2 className="font-bold text-foreground">Posts do Blog — {(selectedBrand as any)?.nome_da_marca}</h2>
+              </div>
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setLoadingBlogPosts(true);
+                  supabase.functions.invoke("blog-proxy", { body: { action: "list", marca_id: selectedBrand!.id } })
+                    .then(res => { if (res.data?.posts) setBlogPosts(res.data.posts); })
+                    .finally(() => setLoadingBlogPosts(false));
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-card border border-border text-xs font-semibold text-muted-foreground hover:text-foreground">
+                <RefreshCw size={12} className={loadingBlogPosts ? "animate-spin" : ""} /> Atualizar
+              </motion.button>
+            </div>
+
+            {loadingBlogPosts ? (
+              <div className="bento-card p-8 text-center">
+                <Loader2 size={28} className="text-primary mx-auto mb-3 animate-spin" />
+                <p className="text-muted-foreground text-sm">Carregando posts do blog...</p>
+              </div>
+            ) : blogPosts.length > 0 ? (
+              <div className="space-y-2">
+                {blogPosts.map((post: any) => (
+                  <motion.div key={post.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bento-card p-4 flex items-center gap-4">
+                    {post.cover_image && (
+                      <img src={post.cover_image} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground text-sm truncate">{post.title}</h3>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-[10px] bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full font-semibold">{post.category || "—"}</span>
+                        <span className="text-xs text-muted-foreground">{post.published_at ? format(new Date(post.published_at), "dd/MM/yyyy") : "—"}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${post.status === "publicado" ? "bg-accent/20 text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
+                          {post.status || "rascunho"}
+                        </span>
+                      </div>
+                    </div>
+                    {(selectedBrand as any)?.blog_url && (
+                      <a href={`${(selectedBrand as any).blog_url.replace(/\/+$/, "")}`} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-primary hover:underline flex-shrink-0">
+                        Ver no blog <ExternalLink size={12} />
+                      </a>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="bento-card p-8 text-center">
+                <BookOpen size={40} className="text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">Nenhum post encontrado no blog</p>
+                <p className="text-xs text-muted-foreground mt-1">Publique conteúdos pela aba Aprovação</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ============ MULTI-CHANNEL MODAL ============ */}
@@ -1165,6 +1327,23 @@ const FabricaConteudo = () => {
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full gradient-peach text-primary-foreground font-semibold text-sm shadow-card disabled:opacity-50">
                   {publishingId === viewingContent.id ? <><Loader2 size={15} className="animate-spin" /> Publicando...</> : <><Send size={15} /> Publicar</>}
                 </motion.button>
+                {selectedBrandHasBlog && (
+                  viewingContent.blogPublished ? (
+                    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                      onClick={() => handleBlogPublish(viewingContent)}
+                      disabled={!!blogPublishingId}
+                      className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-secondary text-secondary-foreground font-semibold text-sm disabled:opacity-50">
+                      {blogPublishingId === viewingContent.id ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />} Republicar Blog
+                    </motion.button>
+                  ) : (
+                    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                      onClick={() => handleBlogPublish(viewingContent)}
+                      disabled={!!blogPublishingId}
+                      className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-secondary text-secondary-foreground font-semibold text-sm disabled:opacity-50">
+                      {blogPublishingId === viewingContent.id ? <><Loader2 size={15} className="animate-spin" /> Blog...</> : <>📝 Publicar Blog</>}
+                    </motion.button>
+                  )
+                )}
                 <ScheduleButton contentId={viewingContent.id} onSchedule={(id, date) => { handleSchedule(id, date); }} />
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                   onClick={() => { handleDelete(viewingContent.id); setViewingContent(null); }}

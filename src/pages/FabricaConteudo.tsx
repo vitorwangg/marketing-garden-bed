@@ -1327,6 +1327,23 @@ const FabricaConteudo = () => {
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full gradient-peach text-primary-foreground font-semibold text-sm shadow-card disabled:opacity-50">
                   {publishingId === viewingContent.id ? <><Loader2 size={15} className="animate-spin" /> Publicando...</> : <><Send size={15} /> Publicar</>}
                 </motion.button>
+                {selectedBrandHasBlog && (
+                  viewingContent.blogPublished ? (
+                    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                      onClick={() => handleBlogPublish(viewingContent)}
+                      disabled={!!blogPublishingId}
+                      className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-secondary text-secondary-foreground font-semibold text-sm disabled:opacity-50">
+                      {blogPublishingId === viewingContent.id ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />} Republicar Blog
+                    </motion.button>
+                  ) : (
+                    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                      onClick={() => handleBlogPublish(viewingContent)}
+                      disabled={!!blogPublishingId}
+                      className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-secondary text-secondary-foreground font-semibold text-sm disabled:opacity-50">
+                      {blogPublishingId === viewingContent.id ? <><Loader2 size={15} className="animate-spin" /> Blog...</> : <>📝 Publicar Blog</>}
+                    </motion.button>
+                  )
+                )}
                 <ScheduleButton contentId={viewingContent.id} onSchedule={(id, date) => { handleSchedule(id, date); }} />
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                   onClick={() => { handleDelete(viewingContent.id); setViewingContent(null); }}

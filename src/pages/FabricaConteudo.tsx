@@ -1157,6 +1157,66 @@ const FabricaConteudo = () => {
         {activeTab === "calendario" && (
           <FabricaCalendario />
         )}
+
+        {activeTab === "blog" && selectedBrandHasBlog && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <BookOpen size={18} className="text-primary" />
+                <h2 className="font-bold text-foreground">Posts do Blog — {(selectedBrand as any)?.nome_da_marca}</h2>
+              </div>
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setLoadingBlogPosts(true);
+                  supabase.functions.invoke("blog-proxy", { body: { action: "list", marca_id: selectedBrand!.id } })
+                    .then(res => { if (res.data?.posts) setBlogPosts(res.data.posts); })
+                    .finally(() => setLoadingBlogPosts(false));
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-card border border-border text-xs font-semibold text-muted-foreground hover:text-foreground">
+                <RefreshCw size={12} className={loadingBlogPosts ? "animate-spin" : ""} /> Atualizar
+              </motion.button>
+            </div>
+
+            {loadingBlogPosts ? (
+              <div className="bento-card p-8 text-center">
+                <Loader2 size={28} className="text-primary mx-auto mb-3 animate-spin" />
+                <p className="text-muted-foreground text-sm">Carregando posts do blog...</p>
+              </div>
+            ) : blogPosts.length > 0 ? (
+              <div className="space-y-2">
+                {blogPosts.map((post: any) => (
+                  <motion.div key={post.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bento-card p-4 flex items-center gap-4">
+                    {post.cover_image && (
+                      <img src={post.cover_image} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground text-sm truncate">{post.title}</h3>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-[10px] bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full font-semibold">{post.category || "—"}</span>
+                        <span className="text-xs text-muted-foreground">{post.published_at ? format(new Date(post.published_at), "dd/MM/yyyy") : "—"}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${post.status === "publicado" ? "bg-accent/20 text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
+                          {post.status || "rascunho"}
+                        </span>
+                      </div>
+                    </div>
+                    {(selectedBrand as any)?.blog_url && (
+                      <a href={`${(selectedBrand as any).blog_url.replace(/\/+$/, "")}`} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-primary hover:underline flex-shrink-0">
+                        Ver no blog <ExternalLink size={12} />
+                      </a>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="bento-card p-8 text-center">
+                <BookOpen size={40} className="text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">Nenhum post encontrado no blog</p>
+                <p className="text-xs text-muted-foreground mt-1">Publique conteúdos pela aba Aprovação</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ============ MULTI-CHANNEL MODAL ============ */}

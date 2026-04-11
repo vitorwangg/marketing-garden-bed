@@ -78,6 +78,8 @@ export type Database = {
       }
       marcas: {
         Row: {
+          blog_key: string | null
+          blog_url: string | null
           cor_primaria: string | null
           cor_secundaria: string | null
           cor_terciaria: string | null
@@ -98,6 +100,8 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          blog_key?: string | null
+          blog_url?: string | null
           cor_primaria?: string | null
           cor_secundaria?: string | null
           cor_terciaria?: string | null
@@ -118,6 +122,8 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          blog_key?: string | null
+          blog_url?: string | null
           cor_primaria?: string | null
           cor_secundaria?: string | null
           cor_terciaria?: string | null

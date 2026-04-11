@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Palette, MessageCircle, Target, Ban, Upload, Pencil, ChevronLeft, Plus, Save, Check, X, Globe, ShoppingCart, FileText, Tag, Key } from "lucide-react";
+import { Palette, MessageCircle, Target, Ban, Upload, Pencil, ChevronLeft, Plus, Save, Check, X, Globe, ShoppingCart, FileText, Tag, Key, Eye, EyeOff, Loader2, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,8 @@ interface MarcaRow {
   tom_de_voz: string[] | null;
   palavras_proibidas: string[] | null;
   user_id: string | null;
+  blog_url: string | null;
+  blog_key: string | null;
 }
 
 const BrandDNA = () => {

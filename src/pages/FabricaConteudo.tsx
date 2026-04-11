@@ -146,7 +146,7 @@ const MAX_UPLOAD_SIZE = 50 * 1024 * 1024; // 50MB
 
 const FabricaConteudo = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"criacao" | "aprovacao" | "historico" | "calendario">("criacao");
+  const [activeTab, setActiveTab] = useState<"criacao" | "aprovacao" | "historico" | "calendario" | "blog">("criacao");
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedBrandId, setSelectedBrandId] = useState("");
   const [selectedLogo, setSelectedLogo] = useState<string>(logoVersions[0]);
@@ -165,6 +165,9 @@ const FabricaConteudo = () => {
   const [temaVisual, setTemaVisual] = useState("");
   const [tokensUsed, setTokensUsed] = useState(0);
   const [showTokenDialog, setShowTokenDialog] = useState(false);
+  const [blogPublishingId, setBlogPublishingId] = useState<string | null>(null);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [loadingBlogPosts, setLoadingBlogPosts] = useState(false);
   const TOTAL_TOKENS = 400;
   useEffect(() => {
     if (!user) return;

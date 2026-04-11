@@ -219,6 +219,80 @@ const FabricaConteudo = () => {
   }, [user]);
 
   const selectedBrand = brands.find(b => b.id === selectedBrandId) || null;
+  const selectedBrandHasBlog = !!(selectedBrand && (selectedBrand as any).blog_url && (selectedBrand as any).blog_key);
+
+  // Fetch blog posts when blog tab is active and brand has blog
+  useEffect(() => {
+    if (activeTab !== "blog" || !selectedBrandHasBlog || !selectedBrand) return;
+    const fetchBlogPosts = async () => {
+      setLoadingBlogPosts(true);
+      try {
+        const res = await supabase.functions.invoke("blog-proxy", {
+          body: { action: "list", marca_id: selectedBrand.id },
+        });
+        if (res.data?.posts) {
+          setBlogPosts(res.data.posts);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar posts do blog:", err);
+      } finally {
+        setLoadingBlogPosts(false);
+      }
+    };
+    fetchBlogPosts();
+  }, [activeTab, selectedBrandId, selectedBrandHasBlog]);
+
+  const handleBlogPublish = async (content: GeneratedContent) => {
+    if (blogPublishingId || !selectedBrand) return;
+    setBlogPublishingId(content.id);
+
+    try {
+      const categoryMap: Record<string, string> = {
+        meta: "meta", facebook: "meta", instagram: "meta",
+        tiktok: "conteudo", blog: "conteudo", email: "conteudo",
+        landing: "landing", ia: "ia", dados: "dados",
+      };
+      const category = categoryMap[content.channelId] || "conteudo";
+      const wordCount = (content.fullText || "").split(/\s+/).length;
+      const readTime = Math.max(2, Math.ceil(wordCount / 200));
+      const authorName = user?.name || (selectedBrand as any).nome_da_marca || "Autor";
+
+      const body: Record<string, unknown> = {
+        action: content.blogPostId ? "republish" : "publish",
+        marca_id: selectedBrand.id,
+        title: content.title,
+        description: content.summary || content.fullText.slice(0, 200),
+        content: content.fullText,
+        category,
+        read_time: readTime,
+        author_name: authorName,
+        author_initials: authorName.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2),
+        cover_image: content.imageUrl || null,
+      };
+
+      if (content.blogPostId) {
+        body.post_id = content.blogPostId;
+      }
+
+      const res = await supabase.functions.invoke("blog-proxy", { body });
+
+      if (res.data?.success) {
+        const postId = res.data.post?.id;
+        setContents(prev => prev.map(c =>
+          c.id === content.id ? { ...c, blogPublished: true, blogPostId: postId || c.blogPostId } : c
+        ));
+        setViewingContent(prev => prev && prev.id === content.id ? { ...prev, blogPublished: true, blogPostId: postId || prev.blogPostId } : prev);
+        toast.success(`✅ Post publicado no blog da ${(selectedBrand as any).nome_da_marca}!`);
+      } else {
+        toast.error(`❌ Erro ao publicar: ${res.data?.error || "Tente novamente"}`);
+      }
+    } catch (err: any) {
+      console.error("Blog publish error:", err);
+      toast.error(`❌ Erro ao publicar no blog: ${err.message}`);
+    } finally {
+      setBlogPublishingId(null);
+    }
+  };
 
   const getSelectedLogoUrl = (): string | null => {
     if (!selectedBrand) return null;

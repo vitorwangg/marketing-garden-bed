@@ -237,7 +237,7 @@ const BrandDNA = () => {
         }
       }
 
-      const row = {
+      const row: Record<string, unknown> = {
         id: brandId,
         user_id: user.email,
         nome_da_marca: brandName,
@@ -255,6 +255,8 @@ const BrandDNA = () => {
         modelo_venda: modeloVenda || null,
         idioma_padrao: idiomaPadrao || null,
         mercado_nicho: mercadoNicho,
+        blog_url: blogUrl.trim() || null,
+        blog_key: blogKey.trim() || null,
       };
 
       const { error } = await supabase.from("marcas").upsert(row, { onConflict: "id" });

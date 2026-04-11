@@ -259,7 +259,7 @@ const BrandDNA = () => {
         blog_key: blogKey.trim() || null,
       };
 
-      const { error } = await supabase.from("marcas").upsert(row, { onConflict: "id" });
+      const { error } = await supabase.from("marcas").upsert(row as any, { onConflict: "id" });
 
       if (error) throw error;
 

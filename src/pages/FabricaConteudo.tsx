@@ -6,7 +6,7 @@ import {
   Sparkles, Send, Clock, CheckCircle, Flame, Search, TrendingUp,
   Instagram, Globe, Twitter, ChevronDown, Image, FileText, Trash2,
   Eye, X, CalendarIcon, Loader2, Mail, CheckCheck, AlertTriangle,
-  Download, Upload, ToggleLeft, ToggleRight, Video, Coins
+  Download, Upload, ToggleLeft, ToggleRight, Video, Coins, BookOpen, RefreshCw, ExternalLink
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {

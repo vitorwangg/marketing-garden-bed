@@ -63,6 +63,9 @@ interface GeneratedContent {
   useGeneratedMedia: boolean;
   customMediaUrl?: string;
   customMediaType?: "imagem" | "video";
+  // Blog publish tracking
+  blogPostId?: string;
+  blogPublished?: boolean;
 }
 
 interface HistoryItem {

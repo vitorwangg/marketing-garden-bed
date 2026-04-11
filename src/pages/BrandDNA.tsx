@@ -81,6 +81,13 @@ const BrandDNA = () => {
 
   const apiPlatformOptions = ["Meta", "TikTok", "Google", "OpenAI", "Hugging Face", "Stability AI", "Anthropic", "Replicate"];
 
+  // Blog state
+  const [blogUrl, setBlogUrl] = useState("");
+  const [blogKey, setBlogKey] = useState("");
+  const [showBlogKey, setShowBlogKey] = useState(false);
+  const [testingBlog, setTestingBlog] = useState(false);
+  const [blogStatus, setBlogStatus] = useState<"idle" | "connected" | "error">("idle");
+
   const fetchBrands = useCallback(async () => {
     if (!user) return;
     setLoading(true);

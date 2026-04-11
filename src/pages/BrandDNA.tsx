@@ -129,6 +129,10 @@ const BrandDNA = () => {
     setIdiomaPadrao(brand.idioma_padrao || "");
     setMercadoNicho(brand.mercado_nicho || []);
     setSaved(false);
+    setBlogUrl(brand.blog_url || "");
+    setBlogKey(brand.blog_key || "");
+    setBlogStatus(brand.blog_url && brand.blog_key ? "connected" : "idle");
+    setShowBlogKey(false);
   };
 
   const openNewBrand = () => {
@@ -147,6 +151,10 @@ const BrandDNA = () => {
     setMercadoNicho([]);
     setNewNicho("");
     setSaved(false);
+    setBlogUrl("");
+    setBlogKey("");
+    setBlogStatus("idle");
+    setShowBlogKey(false);
   };
 
   const closeEditor = () => {

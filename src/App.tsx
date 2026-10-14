@@ -15,8 +15,6 @@ import CalendarPage from "./pages/Calendar";
 import BrandDNA from "./pages/BrandDNA";
 import FabricaConteudo from "./pages/FabricaConteudo";
 import ConciergeSDR from "./pages/ConciergeSDR";
-import AdsIntelligence from "./pages/AdsIntelligence";
-import DimNeutron from "./pages/DimNeutron";
 import Planos from "./pages/Planos";
 import Perfil from "./pages/Perfil";
 import Intelligence from "./pages/Intelligence";

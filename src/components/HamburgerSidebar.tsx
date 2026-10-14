@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, LayoutDashboard, Dna, Sparkles, Users,
   BarChart3, Zap, CreditCard, LogOut, ChevronDown, Bot, Construction,
-  CheckCircle, Clock, FileText, Calendar, Brain, User, Moon, Sun
+  CheckCircle, Clock, FileText, Calendar, Brain, User, Moon, Sun, Search, Mail
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";

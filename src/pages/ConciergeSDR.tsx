@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
 import LeadSegmenter from "@/components/LeadSegmenter";
+import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Phone, MapPin, UserCheck, X, Search, LayoutGrid, List, ExternalLink, Bot, Construction, MessageSquare, Hash, Globe, Instagram, Shield, Calendar, Mail } from "lucide-react";
 
@@ -27,7 +28,7 @@ interface Lead {
   transcript: { sender: string; text: string }[];
 }
 
-const captureLabels: Record<CaptureChannel, { label: string; icon: any }> = {
+const captureLabels: Record<CaptureChannel, { label: string; icon: LucideIcon }> = {
   whatsapp_bot: { label: "WhatsApp Bot", icon: MessageSquare },
   instagram_dm: { label: "Instagram DM", icon: Instagram },
   site: { label: "Site", icon: Globe },

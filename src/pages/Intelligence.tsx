@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
 import TrafficManager from "@/components/TrafficManager";
 import AdsOverview from "@/components/AdsOverview";
+import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain, Zap, BarChart3, Users,
@@ -66,7 +67,7 @@ const Intelligence = () => {
     }, 2500);
   };
 
-  const tabs: { id: SubTab; label: string; icon: any }[] = [
+  const tabs: { id: SubTab; label: string; icon: LucideIcon }[] = [
     { id: "flow", label: "Gestor de tráfego", icon: Zap },
     { id: "ads", label: "ADS Intelligence", icon: BarChart3 },
     { id: "sdr", label: "SDR Intelligence", icon: Users },

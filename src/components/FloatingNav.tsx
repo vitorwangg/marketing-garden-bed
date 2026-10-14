@@ -7,10 +7,8 @@ const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/brand-dna", icon: Dna, label: "Brand DNA" },
   { to: "/fabrica", icon: Sparkles, label: "Fábrica" },
-  { to: "/concierge", icon: Users, label: "Concierge" },
+  { to: "/dimineutron", icon: Users, label: "Dimineutron" },
   { to: "/intelligence", icon: Brain, label: "Intelligence" },
-  { to: "/ads-intel", icon: BarChart3, label: "Ads" },
-  { to: "/dim-neutron", icon: Zap, label: "Neutron" },
   { to: "/perfil", icon: User, label: "Perfil" },
 ];
 
@@ -23,20 +21,20 @@ const FloatingNav = () => {
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-      className="fixed bottom-6 left-0 right-0 mx-auto w-fit z-50 glass-pill px-3 py-2 flex items-center gap-1"
+      className="fixed bottom-4 left-3 right-3 sm:left-0 sm:right-0 mx-auto w-fit max-w-[calc(100%-24px)] z-50 bg-card/95 backdrop-blur-md border border-border rounded-xl shadow-card px-1 sm:px-3 py-1.5 flex items-center gap-0 sm:gap-1"
     >
       {navItems.map((item) => {
-        const isActive = location.pathname === item.to;
+        const isActive = location.pathname === item.to || location.pathname.startsWith(item.to + "/");
         return (
           <NavLink
             key={item.to}
             to={item.to}
-            className="relative flex flex-col items-center px-3 py-2 rounded-full transition-colors"
+            className="relative flex flex-col items-center px-1.5 sm:px-3 py-2 rounded-lg transition-colors"
           >
             {isActive && (
               <motion.div
                 layoutId="nav-pill"
-                className="absolute inset-0 gradient-peach rounded-full"
+                className="absolute inset-0 bg-primary rounded-lg"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
               />
             )}

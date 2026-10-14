@@ -1,4 +1,10 @@
 import { useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import WorkspaceHeader from "@/components/WorkspaceHeader";
+import TrafficManager from "@/components/TrafficManager";
+import AdsOverview from "@/components/AdsOverview";
+import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain, Zap, BarChart3, Users,
@@ -40,8 +46,12 @@ const platformLabels: Record<AdsPlatform, string> = {
 };
 
 const Intelligence = () => {
-  const [activeTab, setActiveTab] = useState<SubTab>("flow");
-  const [flowEnabled, setFlowEnabled] = useState(false);
+  const [params, setParams] = useSearchParams();
+  const { threadId } = useParams();
+  const navigate = useNavigate();
+  const tab = params.get("tab");
+  const activeTab: SubTab = threadId ? "flow" : tab === "ads" || tab === "sdr" ? tab : "flow";
+  const setActiveTab = (next: SubTab) => { if (threadId) navigate(`/intelligence?tab=${next}`); else setParams({ tab: next }); };
   const [sdrEnabled, setSdrEnabled] = useState(false);
   const [adsPlatform, setAdsPlatform] = useState<AdsPlatform>("all");
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
@@ -57,128 +67,79 @@ const Intelligence = () => {
     }, 2500);
   };
 
-  const tabs: { id: SubTab; label: string; icon: any }[] = [
-    { id: "flow", label: "Flow Intelligence", icon: Zap },
+  const tabs: { id: SubTab; label: string; icon: LucideIcon }[] = [
+    { id: "flow", label: "Gestor de tráfego", icon: Zap },
     { id: "ads", label: "ADS Intelligence", icon: BarChart3 },
     { id: "sdr", label: "SDR Intelligence", icon: Users },
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-28 px-4 pt-8">
+    <div className="tech-surface min-h-screen pb-28"><WorkspaceHeader /><div className="px-4 pt-7">
       <div className="max-w-5xl mx-auto">
-        <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-3xl font-bold text-foreground mb-2">
+        <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-3xl font-semibold text-foreground mb-2">
           <Brain className="inline mr-2 text-primary" size={28} />
           Intelligence
         </motion.h1>
-        <p className="text-sm text-muted-foreground mb-6">Central de inteligência artificial para seu negócio</p>
+        <p className="text-sm text-muted-foreground mb-6">Campanhas, oportunidades e atendimento · Dados demonstrativos</p>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id ? "gradient-peach text-primary-foreground shadow-card" : "bg-card text-muted-foreground border border-border hover:text-foreground"}`}>
+            <Button key={tab.id} variant={activeTab === tab.id ? "default" : "outline"} onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 whitespace-nowrap`}>
               <tab.icon size={16} /> {tab.label}
-            </button>
+            </Button>
           ))}
         </div>
 
         <AnimatePresence mode="wait">
-          {/* FLOW INTELLIGENCE */}
-          {activeTab === "flow" && (
-            <motion.div key="flow" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="flex items-center justify-between bg-card rounded-2xl p-5 shadow-card mb-6">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${flowEnabled ? "gradient-peach" : "bg-muted"}`}>
-                    <Zap size={20} className={flowEnabled ? "text-primary-foreground" : "text-muted-foreground"} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-foreground">Flow Intelligence</p>
-                    <p className="text-xs text-muted-foreground">{flowEnabled ? "Ativo — processando dados em tempo real" : "Desativado — ative para começar"}</p>
-                  </div>
-                </div>
-                <Switch checked={flowEnabled} onCheckedChange={setFlowEnabled} />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bento-card p-6">
-                  <div className="w-10 h-10 gradient-peach rounded-xl flex items-center justify-center mb-4">
-                    <Target size={20} className="text-primary-foreground" />
-                  </div>
-                  <h3 className="font-bold text-foreground mb-2">Recuperar Leads</h3>
-                  <p className="text-sm text-muted-foreground">Identifica leads inativos e dispara sequências automatizadas de reengajamento via email e WhatsApp.</p>
-                  <div className={`mt-4 px-3 py-1.5 rounded-full text-xs font-semibold inline-block ${flowEnabled ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
-                    {flowEnabled ? "Ativo" : "Inativo"}
-                  </div>
-                </motion.div>
-
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bento-card p-6">
-                  <div className="w-10 h-10 gradient-lilac rounded-xl flex items-center justify-center mb-4">
-                    <Search size={20} className="text-secondary-foreground" />
-                  </div>
-                  <h3 className="font-bold text-foreground mb-2">Segmentar por Origem</h3>
-                  <p className="text-sm text-muted-foreground">Classifica automaticamente leads por canal de captura (Google, Meta, Instagram DM, WhatsApp) e comportamento.</p>
-                  <div className={`mt-4 px-3 py-1.5 rounded-full text-xs font-semibold inline-block ${flowEnabled ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
-                    {flowEnabled ? "Ativo" : "Inativo"}
-                  </div>
-                </motion.div>
-
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bento-card p-6">
-                  <div className="w-10 h-10 gradient-mint rounded-xl flex items-center justify-center mb-4">
-                    <Mail size={20} className="text-accent-foreground" />
-                  </div>
-                  <h3 className="font-bold text-foreground mb-2">Automações Multi-Canal</h3>
-                  <p className="text-sm text-muted-foreground">Dispara automações via Email, WhatsApp e Instagram DM baseadas em triggers comportamentais e lead score.</p>
-                  <div className={`mt-4 px-3 py-1.5 rounded-full text-xs font-semibold inline-block ${flowEnabled ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
-                    {flowEnabled ? "Ativo" : "Inativo"}
-                  </div>
-                </motion.div>
-              </div>
-            </motion.div>
-          )}
+          {activeTab === "flow" && <motion.div key={threadId || "flow"} initial={{ opacity: 0 }} animate={{ opacity: 1 }}><TrafficManager key={threadId || "home"} threadId={threadId} /></motion.div>}
 
           {/* ADS INTELLIGENCE */}
           {activeTab === "ads" && (
             <motion.div key="ads" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
               <div className="flex flex-wrap gap-2 mb-6">
                 {(Object.keys(platformLabels) as AdsPlatform[]).map((p) => (
-                  <button key={p} onClick={() => setAdsPlatform(p)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${adsPlatform === p ? "gradient-peach text-primary-foreground shadow-card" : "bg-card text-muted-foreground border border-border hover:text-foreground"}`}>
+                  <Button key={p} variant={adsPlatform === p ? "default" : "outline"} onClick={() => setAdsPlatform(p)}
+                    className={`text-sm font-medium`}>
                     {platformLabels[p]}
-                  </button>
+                  </Button>
                 ))}
               </div>
 
+              <AdsOverview platform={adsPlatform} spend={filteredCampaigns.reduce((n,c) => n + c.spend, 0)} conversions={filteredCampaigns.reduce((n,c) => n + c.conversions, 0)} revenue={filteredCampaigns.reduce((n,c) => n + c.spend * parseFloat(c.roas), 0)} />
+              <h2 className="text-lg font-semibold mt-7 mb-4">Campanhas · {filteredCampaigns.length}</h2>
               <div className="space-y-4">
                 {filteredCampaigns.map((c) => (
-                  <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bento-card p-5">
-                    <div className="flex items-center justify-between mb-3">
+                  <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="workspace-panel p-5">
+                    <div className="flex items-center justify-between gap-3 mb-3">
                       <div>
                         <h3 className="font-bold text-foreground">{c.name}</h3>
                         <span className="text-xs text-muted-foreground capitalize">{c.platform} · {c.status === "active" ? "🟢 Ativa" : "⏸️ Pausada"}</span>
                       </div>
-                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleAnalyze(c.id)}
+                      <Button onClick={() => handleAnalyze(c.id)}
                         disabled={analyzingId === c.id}
-                        className="px-4 py-2 gradient-peach text-primary-foreground rounded-xl text-sm font-semibold disabled:opacity-50">
+                        className="shrink-0">
                         {analyzingId === c.id ? "Analisando..." : "Analisar"}
-                      </motion.button>
+                      </Button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div className="bg-muted/50 rounded-xl p-3 text-center">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 border-y border-border py-4">
+                      <div className="p-2 text-center">
                         <DollarSign size={14} className="text-primary mx-auto mb-1" />
                         <p className="text-[10px] text-muted-foreground">Investido</p>
                         <p className="font-bold text-foreground text-sm">R$ {c.spend.toLocaleString("pt-BR")}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-xl p-3 text-center">
+                      <div className="p-2 text-center">
                         <MousePointer size={14} className="text-primary mx-auto mb-1" />
                         <p className="text-[10px] text-muted-foreground">CTR</p>
                         <p className="font-bold text-foreground text-sm">{c.ctr}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-xl p-3 text-center">
+                      <div className="p-2 text-center">
                         <Eye size={14} className="text-primary mx-auto mb-1" />
                         <p className="text-[10px] text-muted-foreground">ROAS</p>
                         <p className="font-bold text-foreground text-sm">{c.roas}</p>
                       </div>
-                      <div className="bg-muted/50 rounded-xl p-3 text-center">
+                      <div className="p-2 text-center">
                         <TrendingUp size={14} className="text-primary mx-auto mb-1" />
                         <p className="text-[10px] text-muted-foreground">Conversões</p>
                         <p className="font-bold text-foreground text-sm">{c.conversions}</p>
@@ -241,7 +202,7 @@ const Intelligence = () => {
                   <h3 className="font-bold text-foreground mb-4">Histórico de Insights</h3>
                   <div className="space-y-3">
                     {mockInsights.map((insight) => (
-                      <motion.div key={insight.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="bento-card p-5">
+                      <motion.div key={insight.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="workspace-panel p-5">
                         <div className="flex items-start gap-3">
                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                             insight.type === "hot" ? "gradient-peach" : insight.type === "trend" ? "gradient-lilac" : insight.type === "alert" ? "bg-destructive/10" : "gradient-mint"
@@ -274,7 +235,7 @@ const Intelligence = () => {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </div></div>
   );
 };
 

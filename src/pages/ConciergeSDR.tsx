@@ -1,10 +1,15 @@
 import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import WorkspaceHeader from "@/components/WorkspaceHeader";
+import LeadSegmenter from "@/components/LeadSegmenter";
+import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Phone, MapPin, UserCheck, X, Search, LayoutGrid, List, ExternalLink, Bot, Construction, MessageSquare, Hash, Globe, Instagram, Shield, Calendar, Mail } from "lucide-react";
 
 type LeadStatus = "no_robo" | "venda" | "humano";
 type CaptureChannel = "whatsapp_bot" | "instagram_dm" | "site" | "indicacao" | "google_ads";
-type MainTab = "contatos" | "fluxo_bot";
+type MainTab = "contatos" | "segmentador" | "fluxo_bot" | "disparos";
 
 interface Lead {
   id: number;
@@ -23,7 +28,7 @@ interface Lead {
   transcript: { sender: string; text: string }[];
 }
 
-const captureLabels: Record<CaptureChannel, { label: string; icon: any }> = {
+const captureLabels: Record<CaptureChannel, { label: string; icon: LucideIcon }> = {
   whatsapp_bot: { label: "WhatsApp Bot", icon: MessageSquare },
   instagram_dm: { label: "Instagram DM", icon: Instagram },
   site: { label: "Site", icon: Globe },
@@ -101,41 +106,38 @@ const statusMap: Record<LeadStatus, { label: string; classes: string }> = {
 
 const ConciergeSDR = () => {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [view, setView] = useState<"cards" | "tabela">("cards");
+  const [view, setView] = useState<"cards" | "tabela" | "kanban">("cards");
   const [search, setSearch] = useState("");
   const [showAll, setShowAll] = useState(false);
-  const [mainTab, setMainTab] = useState<MainTab>("contatos");
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab");
+  const mainTab: MainTab = tab === "segmentador" || tab === "fluxo_bot" || tab === "disparos" ? tab : "contatos";
+  const setMainTab = (next: MainTab) => setParams({ tab: next });
+  const [leadItems, setLeadItems] = useState(leads);
+  const moveLead = (id: number, status: LeadStatus) => setLeadItems(prev => prev.map(l => l.id === id ? { ...l, status } : l));
 
   const filtered = useMemo(() =>
-    leads.filter((l) =>
+    leadItems.filter((l) =>
       l.name.toLowerCase().includes(search.toLowerCase()) ||
       l.company.toLowerCase().includes(search.toLowerCase()) ||
       l.city.toLowerCase().includes(search.toLowerCase())
-    ), [search]);
+    ), [search, leadItems]);
 
   const displayedCards = showAll ? filtered : filtered.slice(0, 6);
 
   return (
-    <div className="min-h-screen bg-background pb-28 px-4 pt-8">
+    <div className="tech-surface min-h-screen pb-28"><WorkspaceHeader /><div className="px-4 pt-7">
       <div className="max-w-6xl mx-auto">
         <motion.h1 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-3xl font-bold text-foreground mb-4">
           <Users className="inline mr-2 text-primary" size={28} />
-          Concierge SDR
+          Dimineutron
         </motion.h1>
 
-        {/* Main Tabs */}
-        <div className="flex gap-2 mb-6">
-          <button onClick={() => setMainTab("contatos")}
-            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${mainTab === "contatos" ? "gradient-peach text-primary-foreground shadow-card" : "bg-card text-muted-foreground border border-border"}`}>
-            <Users size={16} /> Contatos
-          </button>
-          <button onClick={() => setMainTab("fluxo_bot")}
-            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${mainTab === "fluxo_bot" ? "gradient-peach text-primary-foreground shadow-card" : "bg-card text-muted-foreground border border-border"}`}>
-            <Bot size={16} /> Fluxo Bot
-          </button>
-        </div>
-
-        {mainTab === "fluxo_bot" ? (
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">{([
+          ["contatos", "CRM", Users], ["segmentador", "Segmentador de leads", Search], ["fluxo_bot", "Fluxo de bot", Bot], ["disparos", "Disparos", MessageSquare],
+        ] as const).map(([id, label, Icon]) => <Button key={id} variant={mainTab === id ? "default" : "outline"} onClick={() => setMainTab(id)}><Icon size={16} />{label}</Button>)}</div>
+        {mainTab === "segmentador" ? <LeadSegmenter /> : mainTab === "disparos" ? <section className="py-10"><h2 className="text-xl font-semibold mb-6">Disparos</h2><div className="grid sm:grid-cols-2 gap-4">{["WhatsApp", "SMS"].map(channel => <div key={channel} className="workspace-panel p-8 text-center"><MessageSquare className="text-muted-foreground mx-auto mb-4" size={30} /><h3 className="font-semibold">{channel}</h3><p className="text-sm text-muted-foreground mt-3">Em breve</p></div>)}</div></section> :
+        mainTab === "fluxo_bot" ? (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="bento-card p-12 text-center min-h-[400px] flex flex-col items-center justify-center">
             <Construction size={48} className="text-muted-foreground mb-4" />
@@ -153,6 +155,7 @@ const ConciergeSDR = () => {
                   className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-2xl text-sm text-foreground focus-glow" />
               </div>
               <div className="flex bg-card border border-border rounded-2xl overflow-hidden">
+                <Button variant={view === "kanban" ? "default" : "ghost"} onClick={() => setView("kanban")}><LayoutGrid size={16} /> Kanban</Button>
                 <button onClick={() => setView("cards")} className={`px-4 py-2.5 text-sm font-medium transition-colors ${view === "cards" ? "gradient-peach text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                   <LayoutGrid size={16} className="inline mr-1" /> Cards
                 </button>
@@ -162,7 +165,7 @@ const ConciergeSDR = () => {
               </div>
             </div>
 
-            {view === "cards" ? (
+            {view === "kanban" ? <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{(Object.keys(statusMap) as LeadStatus[]).map(status => <section key={status} className="rounded-lg bg-muted/60 p-3 min-h-72" onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); moveLead(Number(e.dataTransfer.getData("text/plain")), status); }}><div className="flex items-center justify-between p-2 mb-2"><h2 className="text-sm font-semibold">{statusMap[status].label}</h2><span className="text-xs text-muted-foreground">{filtered.filter(l => l.status === status).length}</span></div><div className="space-y-3">{filtered.filter(l => l.status === status).map(lead => <article draggable onDragStart={e => e.dataTransfer.setData("text/plain", String(lead.id))} key={lead.id} className="workspace-panel p-4 cursor-grab"><Button variant="link" className="px-0 h-auto text-foreground" onClick={() => setSelectedLead(lead)}>{lead.name}</Button><p className="text-xs text-muted-foreground mt-1">{lead.company}</p><div className="flex items-center justify-between my-3 text-xs"><span className="text-muted-foreground">{lead.city}</span><span className="text-primary">Score {lead.leadScore}</span></div><select aria-label={`Etapa de ${lead.name}`} value={lead.status} onChange={e => moveLead(lead.id, e.target.value as LeadStatus)} className="w-full text-xs bg-background border border-border rounded-md p-2">{(Object.keys(statusMap) as LeadStatus[]).map(s => <option key={s} value={s}>{statusMap[s].label}</option>)}</select></article>)}</div></section>)}</div> : view === "cards" ? (
               <>
                 <h2 className="text-sm font-semibold text-muted-foreground mb-3">Últimos leads capturados</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -241,8 +244,9 @@ const ConciergeSDR = () => {
               </div>
             )}
           </>
-        )}
+        )
 
+        }
         {/* Enhanced Drawer */}
         <AnimatePresence>
           {selectedLead && (
@@ -342,7 +346,7 @@ const ConciergeSDR = () => {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </div></div>
   );
 };
 

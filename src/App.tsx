@@ -15,12 +15,11 @@ import CalendarPage from "./pages/Calendar";
 import BrandDNA from "./pages/BrandDNA";
 import FabricaConteudo from "./pages/FabricaConteudo";
 import ConciergeSDR from "./pages/ConciergeSDR";
-import AdsIntelligence from "./pages/AdsIntelligence";
-import DimNeutron from "./pages/DimNeutron";
 import Planos from "./pages/Planos";
 import Perfil from "./pages/Perfil";
 import Intelligence from "./pages/Intelligence";
 import NotFound from "./pages/NotFound";
+import { TrafficChatProvider } from "@/contexts/TrafficChatContext";
 
 const queryClient = new QueryClient();
 
@@ -58,12 +57,14 @@ const AppRoutes = () => {
           <Route path="/calendario" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
           <Route path="/brand-dna" element={<ProtectedRoute><BrandDNA /></ProtectedRoute>} />
           <Route path="/fabrica" element={<ProtectedRoute><FabricaConteudo /></ProtectedRoute>} />
-          <Route path="/concierge" element={<ProtectedRoute><ConciergeSDR /></ProtectedRoute>} />
-          <Route path="/ads-intel" element={<ProtectedRoute><AdsIntelligence /></ProtectedRoute>} />
-          <Route path="/dim-neutron" element={<ProtectedRoute><DimNeutron /></ProtectedRoute>} />
+          <Route path="/dimineutron" element={<ProtectedRoute><ConciergeSDR /></ProtectedRoute>} />
+          <Route path="/concierge" element={<Navigate to="/dimineutron" replace />} />
+          <Route path="/ads-intel" element={<Navigate to="/intelligence?tab=ads" replace />} />
+          <Route path="/dim-neutron" element={<Navigate to="/dimineutron?tab=segmentador" replace />} />
           <Route path="/planos" element={<ProtectedRoute><Planos /></ProtectedRoute>} />
           <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
           <Route path="/intelligence" element={<ProtectedRoute><Intelligence /></ProtectedRoute>} />
+          <Route path="/intelligence/chat/:threadId" element={<ProtectedRoute><Intelligence /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </PageTransition>
@@ -78,7 +79,9 @@ const App = () => (
       <ThemeProvider>
         <AuthProvider>
           <BrowserRouter>
+            <TrafficChatProvider>
             <AppRoutes />
+            </TrafficChatProvider>
           </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>

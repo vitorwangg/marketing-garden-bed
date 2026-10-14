@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu, X, LayoutDashboard, Dna, Sparkles, Users,
   BarChart3, Zap, CreditCard, LogOut, ChevronDown, Bot, Construction,
-  CheckCircle, Clock, FileText, Calendar, Brain, User, Moon, Sun
+  CheckCircle, Clock, FileText, Calendar, Brain, User, Moon, Sun, Search, Mail
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -34,20 +34,15 @@ const navItems: NavItem[] = [
     ]
   },
   {
-    to: "/concierge", icon: Users, label: "Concierge SDR",
+    to: "/dimineutron", icon: Users, label: "Dimineutron",
     subItems: [
-      { to: "/concierge?tab=contatos", label: "Contatos", icon: Users },
-      { to: "/concierge?tab=fluxo_bot", label: "Fluxo Bot", icon: Bot },
+      { to: "/dimineutron?tab=contatos", label: "CRM", icon: Users },
+      { to: "/dimineutron?tab=segmentador", label: "Segmentador de leads", icon: Search },
+      { to: "/dimineutron?tab=fluxo_bot", label: "Fluxo de bot", icon: Bot },
+      { to: "/dimineutron?tab=disparos", label: "Disparos", icon: Mail },
     ]
   },
   { to: "/intelligence", icon: Brain, label: "Intelligence" },
-  { to: "/ads-intel", icon: BarChart3, label: "Ads Cockpit" },
-  {
-    to: "/dim-neutron", icon: Zap, label: "Jimmy Neutron",
-    subItems: [
-      { to: "/dim-neutron?open=true", label: "Acessar Plataforma", icon: Zap },
-    ]
-  },
   { to: "/planos", icon: CreditCard, label: "Planos" },
   { to: "/perfil", icon: User, label: "Perfil" },
 ];
@@ -139,7 +134,7 @@ const HamburgerSidebar = () => {
                         {hasSubItems && isExpanded && (
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden ml-6 mt-0.5 space-y-0.5">
-                            {item.subItems!.map((sub) => (
+                            {item.subItems?.map((sub) => (
                               <NavLink key={sub.label} to={sub.to}
                                 onClick={() => setOpen(false)}
                                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">

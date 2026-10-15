@@ -12,10 +12,10 @@ const quickProfiles = [
 ];
 
 const accentColors = [
-  { name: "Peach", hsl: "18 100% 72%", hslDark: "350 80% 68%", preview: "#FF8A65" },
+  { name: "Blue", hsl: "217 91% 60%", hslDark: "245 75% 62%", preview: "#3B82F6" },
   { name: "Lilac", hsl: "270 40% 72%", hslDark: "270 30% 55%", preview: "#B388D9" },
   { name: "Mint", hsl: "155 40% 55%", hslDark: "155 35% 40%", preview: "#5CB89A" },
-  { name: "Sky", hsl: "210 80% 65%", hslDark: "210 70% 50%", preview: "#5B9FE8" },
+  { name: "Teal", hsl: "178 60% 45%", hslDark: "200 70% 50%", preview: "#2EB8B3" },
   { name: "Coral", hsl: "350 80% 68%", hslDark: "350 70% 55%", preview: "#E8637A" },
 ];
 

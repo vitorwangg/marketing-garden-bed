@@ -1,4 +1,5 @@
 # App refresh
+- [x] Restore the original visual identity only, preserving the current structure and workflows.
 - [x] Reorganize the dashboard with a friendly technology-platform style.
 - [x] Inspect Brand DNA persistence: existing external-backend calls are present, but mock identity resets on reload; no backend changes made.
 - [ ] Verify/fix real Brand DNA persistence — deferred as permitted; needs verified access to the external backend and a real identity strategy.

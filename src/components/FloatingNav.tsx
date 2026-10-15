@@ -21,7 +21,7 @@ const FloatingNav = () => {
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-      className="fixed bottom-4 left-3 right-3 sm:left-0 sm:right-0 mx-auto w-fit max-w-[calc(100%-24px)] z-50 bg-card/95 backdrop-blur-md border border-border rounded-xl shadow-card px-1 sm:px-3 py-1.5 flex items-center gap-0 sm:gap-1"
+      className="fixed bottom-4 left-3 right-3 sm:left-0 sm:right-0 mx-auto w-fit max-w-[calc(100%-24px)] z-50 glass-pill px-1 sm:px-3 py-1.5 flex items-center gap-0 sm:gap-1"
     >
       {navItems.map((item) => {
         const isActive = location.pathname === item.to || location.pathname.startsWith(item.to + "/");
@@ -29,12 +29,12 @@ const FloatingNav = () => {
           <NavLink
             key={item.to}
             to={item.to}
-            className="relative flex flex-col items-center px-1.5 sm:px-3 py-2 rounded-lg transition-colors"
+            className="relative flex flex-col items-center px-1.5 sm:px-3 py-2 rounded-full transition-colors"
           >
             {isActive && (
               <motion.div
                 layoutId="nav-pill"
-                className="absolute inset-0 bg-primary rounded-lg"
+                className="absolute inset-0 gradient-peach rounded-full"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
               />
             )}

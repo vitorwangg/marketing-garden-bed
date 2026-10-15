@@ -4,47 +4,36 @@
 
 @layer base {
   :root {
-    --background: 36 33% 97%;
-    --foreground: 240 10% 15%;
-
+    --background: 214 60% 95%;
+    --foreground: 222 40% 16%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 15%;
-
+    --card-foreground: 222 40% 16%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 15%;
-
-    --primary: 18 100% 72%;
+    --popover-foreground: 222 40% 16%;
+    --primary: 217 91% 58%;
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 270 40% 88%;
-    --secondary-foreground: 270 30% 30%;
-
-    --muted: 36 20% 93%;
-    --muted-foreground: 240 5% 50%;
-
-    --accent: 155 40% 85%;
-    --accent-foreground: 155 30% 25%;
-
-    --destructive: 0 72% 60%;
+    --secondary: 250 70% 94%;
+    --secondary-foreground: 250 45% 40%;
+    --muted: 214 40% 94%;
+    --muted-foreground: 220 15% 50%;
+    --accent: 178 55% 90%;
+    --accent-foreground: 180 50% 25%;
+    --destructive: 0 80% 62%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 36 15% 90%;
-    --input: 36 15% 90%;
-    --ring: 18 100% 72%;
-
-    --radius: 2rem;
-
-    /* GT Flow custom tokens */
-    --peach: 18 100% 72%;
-    --peach-dark: 350 80% 68%;
-    --lilac: 270 40% 88%;
-    --lilac-dark: 270 30% 70%;
-    --mint: 155 40% 85%;
-    --mint-dark: 155 35% 60%;
-    --warm-white: 36 33% 97%;
-    --shadow-soft: 0 20px 50px rgba(0,0,0,0.05);
-    --shadow-card: 0 8px 30px rgba(0,0,0,0.04);
-    --shadow-hover: 0 25px 60px rgba(0,0,0,0.08);
+    --border: 214 35% 89%;
+    --input: 214 35% 89%;
+    --ring: 217 91% 58%;
+    --radius: 1.25rem;
+    --peach: 217 91% 60%;
+    --peach-dark: 245 75% 62%;
+    --lilac: 250 75% 92%;
+    --lilac-dark: 250 60% 72%;
+    --mint: 178 60% 88%;
+    --mint-dark: 178 55% 48%;
+    --warm-white: 214 60% 97%;
+    --shadow-soft: 0 20px 50px -20px hsl(220 70% 40% / 0.18);
+    --shadow-card: 0 10px 30px -14px hsl(220 70% 40% / 0.16);
+    --shadow-hover: 0 24px 50px -18px hsl(217 91% 50% / 0.28);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -57,41 +46,32 @@
   }
 
   .dark {
-    --background: 240 10% 10%;
-    --foreground: 36 33% 95%;
-
-    --card: 240 10% 14%;
-    --card-foreground: 36 33% 95%;
-
-    --popover: 240 10% 14%;
-    --popover-foreground: 36 33% 95%;
-
-    --primary: 18 100% 72%;
+    --background: 224 40% 9%;
+    --foreground: 214 40% 95%;
+    --card: 224 35% 14%;
+    --card-foreground: 214 40% 95%;
+    --popover: 224 35% 14%;
+    --popover-foreground: 214 40% 95%;
+    --primary: 217 91% 62%;
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 270 20% 25%;
-    --secondary-foreground: 270 40% 85%;
-
-    --muted: 240 8% 18%;
-    --muted-foreground: 240 5% 60%;
-
-    --accent: 155 25% 22%;
-    --accent-foreground: 155 40% 75%;
-
+    --secondary: 250 30% 24%;
+    --secondary-foreground: 250 70% 88%;
+    --muted: 224 28% 19%;
+    --muted-foreground: 218 15% 65%;
+    --accent: 180 30% 20%;
+    --accent-foreground: 178 55% 75%;
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 240 8% 20%;
-    --input: 240 8% 20%;
-    --ring: 18 100% 72%;
-
-    --peach: 18 100% 72%;
-    --peach-dark: 350 80% 68%;
-    --lilac: 270 20% 30%;
-    --lilac-dark: 270 30% 50%;
-    --mint: 155 25% 25%;
-    --mint-dark: 155 35% 40%;
-    --warm-white: 240 10% 10%;
+    --border: 224 25% 22%;
+    --input: 224 25% 22%;
+    --ring: 217 91% 62%;
+    --peach: 217 91% 62%;
+    --peach-dark: 245 75% 65%;
+    --lilac: 250 30% 28%;
+    --lilac-dark: 250 50% 55%;
+    --mint: 180 30% 24%;
+    --mint-dark: 178 50% 42%;
+    --warm-white: 224 40% 9%;
 
     --sidebar-background: 240 10% 12%;
     --sidebar-foreground: 36 33% 90%;
@@ -115,7 +95,7 @@
 
 @layer components {
   .bento-card {
-    @apply bg-card rounded-squircle shadow-card transition-all duration-300 hover:shadow-hover hover:-translate-y-1;
+    @apply bg-card rounded-squircle shadow-card border border-card/60 bg-card/80 backdrop-blur-xl transition-all duration-300 hover:shadow-hover hover:-translate-y-1;
   }
   .gradient-peach {
     background: linear-gradient(135deg, hsl(var(--peach)), hsl(var(--peach-dark)));
@@ -164,3 +144,20 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* Rebrand: soft-blue glass tech dashboard */
+body {
+  background:
+    radial-gradient(1200px 600px at 0% 0%, hsl(var(--peach) / 0.18), transparent 60%),
+    radial-gradient(900px 600px at 100% 100%, hsl(var(--peach-dark) / 0.16), transparent 60%),
+    hsl(var(--background));
+  background-attachment: fixed;
+}
+html, body, #root { background-color: transparent; }
+.tech-surface { background: transparent; }
+.workspace-panel {
+  background: hsl(var(--card) / 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid hsl(var(--card) / 0.6);
+}
+h1, h2, h3 { letter-spacing: -0.02em; }

@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        outfit: ["Outfit", "sans-serif"],
+        outfit: ["Plus Jakarta Sans", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -74,7 +74,7 @@ export default {
         },
       },
       borderRadius: {
-        squircle: "2rem",
+        squircle: "1.5rem",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",

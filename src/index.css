@@ -161,3 +161,22 @@ html, body, #root { background-color: transparent; }
   border: 1px solid hsl(var(--card) / 0.6);
 }
 h1, h2, h3 { letter-spacing: -0.02em; }
+
+.app-backdrop {
+  background:
+    radial-gradient(800px 500px at 10% 0%, hsl(var(--peach) / 0.55), transparent 60%),
+    radial-gradient(800px 600px at 100% 100%, hsl(var(--peach-dark) / 0.5), transparent 60%),
+    linear-gradient(135deg, hsl(var(--peach) / 0.35), hsl(var(--peach-dark) / 0.3));
+}
+.app-frame { background: hsl(var(--background) / 0.85); }
+@media (min-width: 1024px) {
+  .app-frame {
+    border-radius: 2.25rem;
+    border: 1px solid hsl(var(--card) / 0.7);
+    box-shadow: 0 40px 80px -30px hsl(222 60% 25% / 0.45);
+    backdrop-filter: blur(24px);
+    overflow: hidden;
+  }
+  .app-content { background: hsl(var(--muted) / 0.55); border-top-left-radius: 2rem; border-bottom-left-radius: 2rem; }
+  .app-content .min-h-screen { min-height: 100%; padding-bottom: 2rem; }
+}

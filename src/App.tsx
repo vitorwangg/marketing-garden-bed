@@ -9,6 +9,7 @@ import FloatingNav from "@/components/FloatingNav";
 import HamburgerSidebar from "@/components/HamburgerSidebar";
 import FloatingChat from "@/components/FloatingChat";
 import PageTransition from "@/components/PageTransition";
+import AppShell from "@/components/AppShell";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CalendarPage from "./pages/Calendar";
@@ -47,10 +48,10 @@ const AppRoutes = () => {
 
   return (
     <>
-      {user && <FloatingNav />}
-      {user && <HamburgerSidebar />}
+      {user && <div className="lg:hidden"><FloatingNav /></div>}
+      {user && <div className="lg:hidden"><HamburgerSidebar /></div>}
       {user && <FloatingChat />}
-      <PageTransition>
+      {(() => { const page = (<PageTransition>
         <Routes>
           <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -67,7 +68,7 @@ const AppRoutes = () => {
           <Route path="/intelligence/chat/:threadId" element={<ProtectedRoute><Intelligence /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </PageTransition>
+      </PageTransition>); return user ? <AppShell>{page}</AppShell> : page; })()}
     </>
   );
 };
